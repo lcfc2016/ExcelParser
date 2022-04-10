@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Tokeniser.fs" />
+    <Compile Include="BinaryOperators.fs" />
+    <Compile Include="Functions.fs" />
+    <Compile Include="SetFunctions.fs" />
+    <Compile Include="UnaryOperators.fs" />
+    <Compile Include="FuncParsers.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Printer.fs" />
+    <Compile Include="Interpreter.fs" />
+    <Compile Include="XLSXReader.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.95.4" />
+  </ItemGroup>
+
+</Project>
