@@ -62,8 +62,8 @@ and parseVal () =
     | tok when tok.tokenType = Function ->
         expect LeftBracket
         let args = (if tokens.Peek().tokenType <> RightBracket
-                        then parseList ()
-                        else [])
+                    then parseList ()
+                    else [])
         expect RightBracket
         let func = parseFunc tok
         if func.inputs.Length <> args.Length
@@ -72,10 +72,21 @@ and parseVal () =
     | tok when tok.tokenType = SetFunction ->
         expect LeftBracket
         let args = (if tokens.Peek().tokenType <> RightBracket
-                        then parseList ()
-                        else invalidOp ("Empty set provided to " + tok.value))
+                    then parseList ()
+                    else invalidOp ("Empty set provided to " + tok.value))
         expect RightBracket
         Node ( SetFunc ((parseSetFunc tok), args))
+    | tok when tok.tokenType = GenericFunction ->
+        expect LeftBracket
+        let args = (if tokens.Peek().tokenType <> RightBracket
+                    then parseList ()
+                    else [])
+        expect RightBracket
+        let func = parseGenericFunc tok
+        if func.numberOfClauses() <> args.Length
+        then invalidOp (func.repr + " expects " + func.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
+        else Node ( GenericFunc (func, args))
+
     | tok when tok.tokenType = Case ->
         expect LeftBracket
         let clauses = parseClause []

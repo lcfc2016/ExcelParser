@@ -11,6 +11,7 @@
     <Compile Include="BinaryOperators.fs" />
     <Compile Include="Functions.fs" />
     <Compile Include="SetFunctions.fs" />
+    <Compile Include="GenericFunctions.fs" />
     <Compile Include="UnaryOperators.fs" />
     <Compile Include="FuncParsers.fs" />
     <Compile Include="Parser.fs" />

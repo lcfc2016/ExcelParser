@@ -5,6 +5,7 @@ open BinaryOperators
 open UnaryOperators
 open SetFunctions
 open Functions
+open GenericFunctions
 
 
 let isBinary (token: Token) =
@@ -150,4 +151,9 @@ let parseSetFunc (token: Token) =
     | "product" -> product
     | "sum" -> sum
     | "concat" -> concat
+    | _ -> invalidOp ("Parse error at " + token.value)
+
+let parseGenericFunc (token: Token) =
+    match token.value.ToLower() with
+    | "if" -> if'
     | _ -> invalidOp ("Parse error at " + token.value)

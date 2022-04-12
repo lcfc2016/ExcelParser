@@ -123,6 +123,8 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
             if List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (Variadic f) actualTypes
             f.output
+        | GenericFunc (f, args) ->
+            (SimpleType TypeEnum.General) // TODO
         | CaseStatement cases ->
             (SimpleType TypeEnum.General) // TODO
     | Values values ->

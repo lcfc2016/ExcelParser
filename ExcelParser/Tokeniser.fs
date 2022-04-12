@@ -32,7 +32,7 @@ let tokenExprs = [
     // Cross-sheet reference
     {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Functions
-    {regex = Regex(@"^if(?=\()", RegexOptions.IgnoreCase); tokType = If};
+    {regex = Regex(@"^if(?=\()", RegexOptions.IgnoreCase); tokType = GenericFunction};
     {regex = Regex(@"^ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
     {regex = Regex(@"^(?:false|not|true|abs|acos|acosh|acot|acoth|asin|asinh|atan|atan2|atanh|ceiling|cos|cosh|cot|coth|csc|csch|degrees|even|exp|fact|factDouble|floor|gcd|lcm|ln|log|log10|mod|odd|pi|power|quotient|rand|round|sec|sech|sin|sinh|sqrt|tan|tanh|trunc|clean|dollar|exact|find|left|len|lower|mid|right|upper)(?=\()", RegexOptions.IgnoreCase); tokType = Function};
     {regex = Regex(@"^(?:sum|concat|and|or|max|min|average|counta?|product)(?=\()", RegexOptions.IgnoreCase); tokType = SetFunction};

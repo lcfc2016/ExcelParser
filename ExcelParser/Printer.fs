@@ -36,6 +36,9 @@ let rec printParsedCell expr indentLevel =
         | SetFunc (f, args) ->
             printfn "%s%s" indent f.repr
             Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
+        | GenericFunc (f, args) ->
+            printfn "%s%s" indent f.repr
+            Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
         | CaseStatement cases -> evalCases cases (indentLevel + 1)
     | Values values ->
         printfn "{%s%s}" indent (

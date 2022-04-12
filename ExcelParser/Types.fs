@@ -16,7 +16,7 @@ type TokenType =
     | Function
     | SetFunction
     | Case
-    | If
+    | GenericFunction
     // Binary operators
     | Equality
     | Comparison
@@ -62,10 +62,12 @@ and TypeEnum =
     | Bool = 1
     | Numeric = 2
     | Str = 3
+    | Error = 4
 
 type XLFunc =
     | FixedArity of Function
     | Variadic of SetFunction
+    | Generic of GenericFunction
 
 and Function =
     { inputs: List<XLType>; output: XLType; repr: String }
@@ -74,7 +76,12 @@ and Function =
 
 and SetFunction = { input: XLType; output: XLType; repr: String }
 
-type Expression =
+and GenericFunction =
+    { inputs: List<XLType>; outputs: Int32; repr: String }
+    member this.numberOfClauses() = this.inputs.Length + this.outputs
+    member this.inputList() = String.concat ", " (List.map (fun input -> input.ToString() ) this.inputs)
+
+and Expression =
     | Leaf of Value
     | Node of SubExpr
     | Values of Array
@@ -84,6 +91,7 @@ and SubExpr =
     | Binary of func:Function * left:Expression * right:Expression
     | Func of func:Function * args:List<Expression>
     | SetFunc of func:SetFunction * args:List<Expression>
+    | GenericFunc of func:GenericFunction * args:List<Expression>
     | CaseStatement of clauses:List<CaseClause>
 
 and CaseClause = { cond: Expression; result: Expression }
