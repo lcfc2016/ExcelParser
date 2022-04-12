@@ -30,10 +30,12 @@ let constructError errorType f actual =
     | TypeStatus.Mismatch ->
         match f with
         | FixedArity f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
+        | Generic f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
         | Variadic f -> f.repr + " expected " + f.input.print() + " got " + typeJoin actual
     | TypeStatus.PartialHandling ->
         match f with
         | FixedArity f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
+        | Generic f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
         | Variadic f -> f.repr + " expected " + f.input.print() + " got " + typeJoin actual
     | _ -> invalidOp "Match or unhandled error type passed to error handling"
 
