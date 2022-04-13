@@ -72,14 +72,14 @@ type XLFunc =
 and Function =
     { inputs: List<XLType>; output: XLType; repr: String }
     member this.arity() = this.inputs.Length
-    member this.inputList() = String.concat ", " (List.map (fun input -> input.ToString() ) this.inputs)
+    member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and SetFunction = { input: XLType; output: XLType; repr: String }
 
 and GenericFunction =
     { inputs: List<XLType>; outputs: Int32; repr: String }
     member this.numberOfClauses() = this.inputs.Length + this.outputs
-    member this.inputList() = String.concat ", " (List.map (fun input -> input.ToString() ) this.inputs)
+    member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and Expression =
     | Leaf of Value

@@ -84,7 +84,7 @@ and parseVal () =
         expect RightBracket
         let func = parseGenericFunc tok
         if func.numberOfClauses() <> args.Length
-        then invalidOp (func.repr + " expects " + func.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
+        then invalidOp (func.repr + " expects " + func.numberOfClauses().ToString() + " clauses, got " + args.Length.ToString())
         else Node ( GenericFunc (func, args))
 
     | tok when tok.tokenType = Case ->

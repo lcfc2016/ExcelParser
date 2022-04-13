@@ -40,7 +40,7 @@ let constructError errorType f actual =
     | _ -> invalidOp "Match or unhandled error type passed to error handling"
 
 let addError sheet cell errorType f actual =
-    errorBuffer.Enqueue((sheet + ": " + cell, (constructError errorType f actual)))
+    errorBuffer.Enqueue(sheet + ": " + cell, (constructError errorType f actual))
 
 let checkTypes expected actual =
     match expected with
@@ -123,10 +123,15 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
             let actualTypes = List.map (fun t -> walkAST sheet cell t) args
             let typeStatuses = List.map (fun a -> checkTypes f.input a) actualTypes
             if List.max typeStatuses > TypeStatus.Match
-            then addError sheet cell (List.max typeStatuses) (Variadic f) actualTypes
+            then addError sheet cell (List.max typeStatuses) (Variadic f) [(condenseTypes (Set actualTypes))]
             f.output
         | GenericFunc (f, args) ->
-            (SimpleType TypeEnum.General) // TODO
+            let inputs, outputs = List.splitAt f.inputs.Length args
+            let inputTypes = List.map (fun t -> walkAST sheet cell t) inputs
+            let typeStatuses = List.map2 (fun e a -> checkTypes e a) f.inputs inputTypes
+            if List.max typeStatuses > TypeStatus.Match
+            then addError sheet cell (List.max typeStatuses) (Generic f) inputTypes
+            condenseTypes (Set.map (fun t -> walkAST sheet cell t) (Set outputs))
         | CaseStatement cases ->
             (SimpleType TypeEnum.General) // TODO
     | Values values ->
