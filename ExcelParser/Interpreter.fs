@@ -116,7 +116,7 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
         | Func (f, args) ->
             let actualTypes = List.map (fun t -> walkAST sheet cell t) args
             let typeStatuses = List.map2 (fun e a -> checkTypes e a) f.inputs actualTypes
-            if List.max typeStatuses > TypeStatus.Match
+            if List.length args > 0 && List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (FixedArity f) actualTypes
             f.output
         | SetFunc (f, args) ->

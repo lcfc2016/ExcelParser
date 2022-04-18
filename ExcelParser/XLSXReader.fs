@@ -11,7 +11,8 @@ let readSheet (xlSheet: IXLWorksheet) =
             address = cell.Address.ToString(XLReferenceStyle.A1);
             column = cell.WorksheetColumn().ColumnLetter();
             row = cell.WorksheetRow().RowNumber();
-            value = if cell.HasFormula then cell.FormulaA1 else cell.GetString();
+            // Below has to strip curly braces due to weirdness in ClosedXML formula parsing
+            value = if cell.HasFormula then cell.FormulaA1.TrimStart('{').TrimEnd('}') else cell.GetString();
             isFormula = cell.HasFormula
     }]
 

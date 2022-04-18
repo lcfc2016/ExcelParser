@@ -7,6 +7,7 @@ open Types
 // Logical
 let and' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "AND" }
 let or' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "OR" }
+let xor = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "XOR" }
 
 // Math and Trig
 let product = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "PRODUCT" }

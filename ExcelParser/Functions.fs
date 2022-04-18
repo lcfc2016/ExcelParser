@@ -66,3 +66,24 @@ let mid = { inputs = [(SimpleType TypeEnum.Str); (SimpleType TypeEnum.Numeric); 
 let right = { inputs = [(SimpleType TypeEnum.Str); (SimpleType TypeEnum.Numeric)]; output = (SimpleType TypeEnum.Str); repr = "RIGHT" }
 let upper = { inputs = [(SimpleType TypeEnum.Str)]; output = (SimpleType TypeEnum.Str); repr = "UPPER" }
 
+// Information
+let cell = { inputs = [(SimpleType TypeEnum.Str); (SimpleType TypeEnum.General)]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); repr = "CELL"}
+let errorType = { inputs = [(SimpleType TypeEnum.Error)]; output = (SimpleType TypeEnum.Numeric); repr = "ERROR.TYPE"}
+let info = { inputs = [(SimpleType TypeEnum.Str)]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); repr = "INFO"}
+let isBlank = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISBLANK"}
+let isErr = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISERR"}
+let isError = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISERROR"}
+let isEven = { inputs = [(SimpleType TypeEnum.Numeric)]; output = (SimpleType TypeEnum.Bool); repr = "ISEVEN"}
+let isFormula = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISFORMULA"}
+let isLogical = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISLOGICAL"}
+let isNa = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISNA"}
+let isNontext = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISNONTEXT"}
+let isNumber = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISNUMBER"}
+let isOdd = { inputs = [(SimpleType TypeEnum.Numeric)]; output = (SimpleType TypeEnum.Bool); repr = "ISODD"}
+let isRef = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISREF"}
+let isText = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Bool); repr = "ISTEXT"}
+let n = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Numeric); repr = "N"}
+let na = { inputs = []; output = (SimpleType TypeEnum.Error); repr = "NA"}
+let sheet = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Numeric); repr = "SHEET"}
+let sheets = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Numeric); repr = "SHEETS"}
+let type' = { inputs = [(SimpleType TypeEnum.General)]; output = (SimpleType TypeEnum.Numeric); repr = "TYPE"}

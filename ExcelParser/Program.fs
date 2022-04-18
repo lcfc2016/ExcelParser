@@ -3,19 +3,18 @@
 open System
 open Types
 
-let textFile = "C:/Users/bjs73/documents/MSC/IRP/test_sheet_1.xlsx"
 
 let createAST input isFormula =
     (input, isFormula) ||> Tokeniser.run |> Parser.run
 
-let parseAndPrintASTs () =
+let parseAndPrintASTs filename =
      Map.iter (fun name contents ->
                 printfn "%s" name
                 ignore [ for (cell: UnparsedCell) in contents ->
                            Printer.run cell.address (createAST cell.value cell.isFormula)])
-              (XLSXReader.xlsxReader(textFile))
+              (XLSXReader.xlsxReader(filename))
 
-let parseAndTypeCheck () =
+let parseAndTypeCheck filename =
     let astMap = Map.map (fun name contents ->
                              Map [ for (cell: UnparsedCell) in contents ->
                                     (cell.address, {
@@ -23,15 +22,26 @@ let parseAndTypeCheck () =
                                         row = cell.row;
                                         ast = (createAST cell.value cell.isFormula)
                                     })])
-                        (XLSXReader.xlsxReader(textFile))
+                        (XLSXReader.xlsxReader(filename))
     let errors = Interpreter.run astMap
     for error in errors do
         printfn "%s = %s" (fst error) (snd error)
 
 [<EntryPoint>]
 let main argv =
+#if DEBUG
     // let code = "=abs(neg(log(1000, 10) + 3 ^ 2)) = 7"
-    // XLSXReader.testXLRead textFile
-    // parseAndPrintASTs ()
-    parseAndTypeCheck ()
+    let testFile = "C:/Users/bjs73/documents/MSC/IRP/test_sheet_1.xlsx"
+    //ignore (XLSXReader.testXLRead testFile)
+    parseAndPrintASTs testFile
+    //parseAndTypeCheck testFile
+#else
+    if argv.Length < 1
+    then printfn "Please provide xlsx files to parse and type check. Flag -p enables AST print mode"
+    else if argv.[0] = "-p"
+         then if argv.Length < 2
+              then printfn "Please provide xlsx files to parse and type check"
+              else List.iter parseAndPrintASTs (List.ofArray argv)
+         else List.iter parseAndTypeCheck (List.ofArray argv)
+#endif
     0 // return an integer exit code

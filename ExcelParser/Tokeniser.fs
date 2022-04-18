@@ -7,6 +7,11 @@ open Types
 [<Struct>]
 type TokenExprs = { regex: Regex; tokType: TokenType }
 
+let numericTokenExpr = {regex = Regex(@"^\d+(?:\.\d+)?"); tokType = Number};
+let textTokenExpr = {regex = Regex(@"^"".*?"""); tokType = Text};
+let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b", RegexOptions.IgnoreCase); tokType = Boolean};
+let errorTokenExpr = {regex = Regex(@"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)", RegexOptions.IgnoreCase); tokType = XLError};
+
 let tokenExprs = [
     // Delimiters
     {regex = Regex(@"^\s+"); tokType = Whitespace};
@@ -26,16 +31,15 @@ let tokenExprs = [
     {regex = Regex(@"^\^"); tokType = Expt};
     {regex = Regex(@"^%"); tokType = Percentage};
     // Literals
-    {regex = Regex(@"^\d+(?:\.\d+)?"); tokType = Number};
-    {regex = Regex(@"^"".*?"""); tokType = Text};
-    {regex = Regex(@"^(?:true|false)\b", RegexOptions.IgnoreCase); tokType = Boolean};
+    numericTokenExpr;
+    textTokenExpr;
+    boolTokenExpr;
+    errorTokenExpr;
     // Cross-sheet reference
     {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Functions
-    {regex = Regex(@"^if(?=\()", RegexOptions.IgnoreCase); tokType = GenericFunction};
-    {regex = Regex(@"^ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
-    {regex = Regex(@"^(?:false|not|true|abs|acos|acosh|acot|acoth|asin|asinh|atan|atan2|atanh|ceiling|cos|cosh|cot|coth|csc|csch|degrees|even|exp|fact|factDouble|floor|gcd|lcm|ln|log|log10|mod|odd|pi|power|quotient|rand|round|sec|sech|sin|sinh|sqrt|tan|tanh|trunc|clean|dollar|exact|find|left|len|lower|mid|right|upper)(?=\()", RegexOptions.IgnoreCase); tokType = Function};
-    {regex = Regex(@"^(?:sum|concat|and|or|max|min|average|counta?|product)(?=\()", RegexOptions.IgnoreCase); tokType = SetFunction};
+    {regex = Regex(@"^(?:_xlfn\.)?ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
+    {regex = Regex(@"^(?:_xlfn\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
     // Misc
     //{regex = Regex(@"^let"); tokType = Let};
     {regex = Regex(@"^$?[a-z]{0,3}$?\d+:$?[a-z]{0,3}$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
@@ -60,15 +64,15 @@ and tokenise str tokens index =
         else
             invalidOp ("Parse error at char: '" + str.Substring(0, 1) + "'")
 
-
 let run (str: string) (isFormula: bool) =
     if isFormula
     then List.filter(fun x -> not(x.tokenType.Equals(Whitespace))) (lexer str [])
     else [{
             value = str;
             tokenType = match str with
-                        | num when Regex.IsMatch(num, @"^\d+(?:\.\d+)?$") -> Number
-                        | bool when Regex.IsMatch(bool, @"^(?:true|false)$", RegexOptions.IgnoreCase) -> Boolean
+                        | num when numericTokenExpr.regex.IsMatch(num) -> Number
+                        | bool when boolTokenExpr.regex.IsMatch(bool) -> Boolean
+                        | error when errorTokenExpr.regex.IsMatch(error) -> Error
                         | _ -> Text
         };
         endToken

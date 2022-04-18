@@ -19,7 +19,8 @@ let isLiteral (token: Token) =
     match token.tokenType with
     | Boolean
     | Number
-    | Text -> true
+    | Text
+    | XLError -> true
     | _ -> false
 
 let parseLiteral (token: Token) =
@@ -28,6 +29,7 @@ let parseLiteral (token: Token) =
         | Text ->       SimpleType (TypeEnum.Str)
         | Number ->     SimpleType (TypeEnum.Numeric)
         | Boolean ->    SimpleType (TypeEnum.Bool)
+        | XLError ->    SimpleType (TypeEnum.Error)
         | _ -> invalidOp ("Parse error at " + token.value))
 
 let rec parseExpr prec =
@@ -59,34 +61,23 @@ and parseVal () =
         Leaf (parseLiteral tok)
     | tok when tok.tokenType = CellReference ->
         Leaf (Reference (tok.value))
-    | tok when tok.tokenType = Function ->
+    | tok when tok.tokenType = FuncToken ->
         expect LeftBracket
         let args = (if tokens.Peek().tokenType <> RightBracket
                     then parseList ()
                     else [])
         expect RightBracket
-        let func = parseFunc tok
-        if func.inputs.Length <> args.Length
-            then invalidOp (func.repr + " expects " + func.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
-            else Node ( Func (func, args))
-    | tok when tok.tokenType = SetFunction ->
-        expect LeftBracket
-        let args = (if tokens.Peek().tokenType <> RightBracket
-                    then parseList ()
-                    else invalidOp ("Empty set provided to " + tok.value))
-        expect RightBracket
-        Node ( SetFunc ((parseSetFunc tok), args))
-    | tok when tok.tokenType = GenericFunction ->
-        expect LeftBracket
-        let args = (if tokens.Peek().tokenType <> RightBracket
-                    then parseList ()
-                    else [])
-        expect RightBracket
-        let func = parseGenericFunc tok
-        if func.numberOfClauses() <> args.Length
-        then invalidOp (func.repr + " expects " + func.numberOfClauses().ToString() + " clauses, got " + args.Length.ToString())
-        else Node ( GenericFunc (func, args))
-
+        match parseFunc tok with
+        | FixedArity f -> 
+            if f.inputs.Length <> args.Length
+                then invalidOp (f.repr + " expects " + f.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
+                else Node ( Func (f, args))
+        | Variadic f ->
+            Node ( SetFunc (f, args))
+        | Generic f ->
+            if f.numberOfClauses() <> args.Length
+            then invalidOp (f.repr + " expects " + f.numberOfClauses().ToString() + " clauses, got " + args.Length.ToString())
+            else Node ( GenericFunc (f, args))
     | tok when tok.tokenType = Case ->
         expect LeftBracket
         let clauses = parseClause []
@@ -99,13 +90,6 @@ and parseVal () =
     | tok when tok.tokenType = CellRange ->
         let elements = Regex.Match(tok.value, @"$?([a-z]{0,3})$?(\d+):$?([a-z]{0,3})$?(\d+)", RegexOptions.IgnoreCase).Groups;
         Leaf (Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value) )
-    //| tok when tok.tokenType = If ->
-    //    expect LeftBracket
-    //    let args = parseList ()
-    //    expect RightBracket
-    //    Node ( CaseStatement [
-    //        {cond = args.Head; result = args.Item(1)};
-    //        {cond = Leaf (Bool true); result = args.Item(2)};] )
     | value -> invalidOp ("Error at " + value.value)
 
 and parseLiteralArray () =
@@ -133,11 +117,9 @@ and parseList () =
     | _ -> invalidOp ("Error at " + tokens.Peek().value)
 
 and parseClause clauses =
-    expect LeftBracket
     let clause = parseExpr 0
     expect Comma
     let result = parseExpr 0
-    expect RightBracket
     match tokens.Dequeue().tokenType with
     | Comma -> parseClause (clauses @ [{cond = clause; result = result}])
     | RightBracket -> clauses @ [{cond = clause; result = result}]

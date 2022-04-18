@@ -13,10 +13,8 @@ type TokenType =
     | Colon
     | Semicolon
     // Function forms
-    | Function
-    | SetFunction
+    | FuncToken
     | Case
-    | GenericFunction
     // Binary operators
     | Equality
     | Comparison
@@ -29,6 +27,7 @@ type TokenType =
     | Number
     | Text
     | Boolean
+    | XLError
     // Misc
     //| Let
     | Percentage
