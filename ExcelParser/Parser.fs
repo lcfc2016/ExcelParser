@@ -24,7 +24,8 @@ let isLiteral (token: Token) =
     | _ -> false
 
 let parseLiteral (token: Token) =
-    Constant ( token.value.Trim('"'),
+    let value = if token.value = @"""""" then token.value else token.value.Trim('"')
+    Constant ( value,
         match token.tokenType with
         | Text ->       SimpleType (TypeEnum.Str)
         | Number ->     SimpleType (TypeEnum.Numeric)
