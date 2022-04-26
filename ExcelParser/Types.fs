@@ -69,8 +69,8 @@ type XLFunc =
     | Generic of GenericFunction
 
 and Function =
-    { inputs: List<XLType>; output: XLType; repr: String }
-    member this.arity() = this.inputs.Length
+    { inputs: List<XLType>; output: XLType; minArity: int; repr: String }
+    member this.maxArity() = this.inputs.Length
     member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and SetFunction = { input: XLType; output: XLType; repr: String }

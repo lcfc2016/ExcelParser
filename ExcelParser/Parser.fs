@@ -2,6 +2,7 @@
 
 open Types
 open FuncParsers
+open System
 open System.Collections
 open System.Text.RegularExpressions
 
@@ -70,9 +71,9 @@ and parseVal () =
         expect RightBracket
         match parseFunc tok with
         | FixedArity f -> 
-            if f.inputs.Length <> args.Length
-                then invalidOp (f.repr + " expects " + f.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
-                else Node ( Func (f, args))
+            if f.minArity <= args.Length && args.Length <= f.maxArity()
+                then Node ( Func (f, args))
+                else invalidOp (f.repr + " expects " + f.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
         | Variadic f ->
             Node ( SetFunc (f, args))
         | Generic f ->

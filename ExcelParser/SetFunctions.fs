@@ -9,6 +9,9 @@ let and' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output 
 let or' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "OR" }
 let xor = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "XOR" }
 
+// Lookup and Reference
+let areas = { input = (SimpleType TypeEnum.General); output = (SimpleType TypeEnum.Numeric); repr = "AREAS" }
+
 // Math and Trig
 let product = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "PRODUCT" }
 let sum = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "SUM" }
