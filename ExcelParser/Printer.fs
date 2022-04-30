@@ -19,7 +19,7 @@ let rec printParsedCell expr indentLevel =
                                               | Reference name -> name
                                               | Constant (value, xlType) -> value
                                               | Range(minRow, maxRow, minCol, maxCol) ->
-                                                String.Join(minCol, (minRow.ToString()), maxCol, (maxRow.ToString()))
+                                                String.Join("", minCol, (minRow.ToString()), maxCol, (maxRow.ToString()))
                                               | _ -> invalidOp "Invalid sheet reference chaining detected")
     | Node node ->
         match node with

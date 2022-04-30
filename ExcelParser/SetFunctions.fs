@@ -4,6 +4,10 @@ open System
 open Types
 
 
+// Engineering
+
+// Financial
+
 // Logical
 let and' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "AND" }
 let or' = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output = (SimpleType TypeEnum.Bool); repr = "OR" }
@@ -13,6 +17,7 @@ let xor = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric]); output =
 let areas = { input = (SimpleType TypeEnum.General); output = (SimpleType TypeEnum.Numeric); repr = "AREAS" }
 
 // Math and Trig
+let multinomial = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "MULTINOMIAL" }
 let product = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "PRODUCT" }
 let sum = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum.Numeric); repr = "SUM" }
 
@@ -25,3 +30,4 @@ let min = { input = (SimpleType TypeEnum.Numeric); output = (SimpleType TypeEnum
 
 // Text
 let concat = { input = (SimpleType TypeEnum.Str); output = (SimpleType TypeEnum.Str); repr = "CONCAT" }
+let concatenate = { input = (SimpleType TypeEnum.Str); output = (SimpleType TypeEnum.Str); repr = "CONCATENATE" }

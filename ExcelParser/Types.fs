@@ -76,8 +76,9 @@ and Function =
 and SetFunction = { input: XLType; output: XLType; repr: String }
 
 and GenericFunction =
-    { inputs: List<XLType>; outputs: Int32; repr: String }
-    member this.numberOfClauses() = this.inputs.Length + this.outputs
+    { inputs: List<XLType>; minimumOutputs: Int32; maximumOutputs: Int32; repr: String }
+    member this.minimumClauses() = this.inputs.Length + this.minimumOutputs
+    member this.maximumClauses() = this.inputs.Length + this.maximumOutputs
     member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and Expression =

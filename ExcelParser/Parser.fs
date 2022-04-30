@@ -25,6 +25,7 @@ let isLiteral (token: Token) =
     | _ -> false
 
 let parseLiteral (token: Token) =
+    // Check if token string is double-quoted, if so remove quotes
     let value = if token.value = @"""""" then token.value else token.value.Trim('"')
     Constant ( value,
         match token.tokenType with
@@ -77,9 +78,9 @@ and parseVal () =
         | Variadic f ->
             Node ( SetFunc (f, args))
         | Generic f ->
-            if f.numberOfClauses() <> args.Length
-            then invalidOp (f.repr + " expects " + f.numberOfClauses().ToString() + " clauses, got " + args.Length.ToString())
-            else Node ( GenericFunc (f, args))
+            if f.minimumClauses() <= args.Length && args.Length <= f.maximumClauses()
+            then Node ( GenericFunc (f, args))
+            else invalidOp (f.repr + " expects between " + f.minimumClauses().ToString() + " and " + f.maximumClauses().ToString() + " arguments, got " + args.Length.ToString())
     | tok when tok.tokenType = Case ->
         expect LeftBracket
         let clauses = parseClause []
@@ -88,10 +89,10 @@ and parseVal () =
         Leaf (Sheet (tok.value.Trim('!').Trim('''), parseRef tok.value))
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
-        Leaf (Range (1, 1048576, cols.[0], cols.[1]) )
+        Leaf (Value.Range (1, 1048576, cols.[0], cols.[1]) )
     | tok when tok.tokenType = CellRange ->
         let elements = Regex.Match(tok.value, @"$?([a-z]{0,3})$?(\d+):$?([a-z]{0,3})$?(\d+)", RegexOptions.IgnoreCase).Groups;
-        Leaf (Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value) )
+        Leaf (Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value) )
     | value -> invalidOp ("Error at " + value.value)
 
 and parseLiteralArray () =
@@ -133,10 +134,10 @@ and parseRef sheetName =
         Reference (tok.value)
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
-        Range (1, 1048576, cols.[0], cols.[1])
+        Value.Range (1, 1048576, cols.[0], cols.[1])
     | tok when tok.tokenType = CellRange ->
         let elements = Regex.Match(tok.value, @"$?([a-z]{0,3})$?(\d+):$?([a-z]{0,3})$?(\d+)", RegexOptions.IgnoreCase).Groups;
-        Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
+        Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
     | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName)
 
 let parse (tokenList: List<Token>) =

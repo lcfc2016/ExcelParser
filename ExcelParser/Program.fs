@@ -33,8 +33,8 @@ let main argv =
     // let code = "=abs(neg(log(1000, 10) + 3 ^ 2)) = 7"
     let testFile = "C:/Users/bjs73/documents/MSC/IRP/test_sheet_1.xlsx"
     //ignore (XLSXReader.testXLRead testFile)
-    parseAndPrintASTs testFile
-    //parseAndTypeCheck testFile
+    //parseAndPrintASTs testFile
+    parseAndTypeCheck testFile
 #else
     if argv.Length < 1
     then printfn "Please provide xlsx files to parse and type check. Flag -p enables AST print mode"

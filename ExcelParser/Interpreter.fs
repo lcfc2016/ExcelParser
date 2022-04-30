@@ -129,7 +129,7 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
             let inputs, outputs = List.splitAt f.inputs.Length args
             let inputTypes = List.map (fun t -> walkAST sheet cell t) inputs
             let typeStatuses = List.map2 (fun e a -> checkTypes e a) f.inputs inputTypes
-            if List.max typeStatuses > TypeStatus.Match
+            if (not typeStatuses.IsEmpty) && List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (Generic f) inputTypes
             condenseTypes (Set.map (fun t -> walkAST sheet cell t) (Set outputs))
         | CaseStatement cases ->
