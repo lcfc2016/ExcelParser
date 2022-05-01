@@ -269,7 +269,7 @@ let parseFunc (token: Token) =
     | "sum" -> (Variadic sum)
     | "average" -> (Variadic average)
     | "count" -> (Variadic count)
-    | "counta" -> (Variadic counta)
+    | "counta" -> (Variadic countA)
     | "max" -> (Variadic max)
     | "min" -> (Variadic min)
     | "concat" -> (Variadic concat)

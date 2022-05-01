@@ -76,7 +76,9 @@ and parseVal () =
                 then Node ( Func (f, args))
                 else invalidOp (f.repr + " expects " + f.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
         | Variadic f ->
-            Node ( SetFunc (f, args))
+            if args.Length > 0
+            then Node ( SetFunc (f, args))
+            else invalidOp ("No arguments provided to function: " + f.repr)
         | Generic f ->
             if f.minimumClauses() <= args.Length && args.Length <= f.maximumClauses()
             then Node ( GenericFunc (f, args))
