@@ -121,3 +121,9 @@ type TypeStatus =
     | Match = 0
     | PartialHandling = 1
     | Mismatch = 2
+
+type Error = (string * string * string * string * string * string)
+
+type ErrorFormat =
+    | PrettyPrint
+    | CSV

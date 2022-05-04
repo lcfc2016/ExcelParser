@@ -8,7 +8,7 @@ open Types
 // Globals
 let mutable cellLookup = Map<String, Map<String, ParsedCell>>[]
 let mutable checkedCells = new Dictionary<String, Dictionary<String, XLType>>()
-let mutable errorBuffer = new Queue<(String * String)>()
+let mutable errorBuffer = new Queue<Error>()
 
 let typeJoin (types: list<XLType>) =
     String.concat ", " (List.map (fun (input: XLType) -> input.print()) types)
@@ -25,22 +25,15 @@ let condenseTypes (types: Set<XLType>) =
          then ComplexType (typeSet)
          else SimpleType (Set.minElement typeSet)
 
-let constructError errorType f actual =
-    match errorType with
-    | TypeStatus.Mismatch ->
-        match f with
-        | FixedArity f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
-        | Generic f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
-        | Variadic f -> f.repr + " expected " + f.input.print() + " got " + typeJoin actual
-    | TypeStatus.PartialHandling ->
-        match f with
-        | FixedArity f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
-        | Generic f -> f.repr + " expected " + f.inputList() + " got " + typeJoin actual
-        | Variadic f -> f.repr + " expected " + f.input.print() + " got " + typeJoin actual
-    | _ -> invalidOp "Match or unhandled error type passed to error handling"
+let getFunctionDetails f =
+    match f with
+    | FixedArity f -> (f.repr, f.inputList())
+    | Generic f -> (f.repr, f.inputList())
+    | Variadic f -> (f.repr, f.input.print())
 
 let addError sheet cell errorType f actual =
-    errorBuffer.Enqueue(sheet + ": " + cell, (constructError errorType f actual))
+    let funcDetails = getFunctionDetails f
+    errorBuffer.Enqueue((sheet, cell, errorType.ToString(), (fst funcDetails), (snd funcDetails), typeJoin actual))
 
 let checkTypes expected actual =
     match expected with
@@ -150,7 +143,7 @@ let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
     Map.map (fun address (cell: ParsedCell) -> (fetchTypeOrParseTypes sheet address)) cellMap
 
 let run (astMap: Map<String, Map<String, ParsedCell>>) =
-    // Initialise global AST lookup and dictionary of known cell types
+    // Initialise errorFormat, global AST lookup and dictionary of known cell types
     cellLookup <- astMap
     Map.iter (fun sheet contents -> checkedCells.Add(sheet, new Dictionary<String, XLType>())) astMap
     // Type check
