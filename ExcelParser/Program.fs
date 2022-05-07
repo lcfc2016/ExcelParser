@@ -42,16 +42,19 @@ let errorsToCSVFormat filename (errors: Queue<Error>) =
         // String.Join(",", filename, error.sheet, error.cell, error.f, error.expected, error.actual, error.errorType, error.errorMessage)) errors
         sprintf "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"" filename error.sheet error.cell error.f error.expected error.actual error.errorType error.errorMessage) errors
 
-let rec generateOutputName fileWithoutExtension attempt =
-    if File.Exists fileWithoutExtension
-    then generateOutputName fileWithoutExtension (attempt + 1)
-    else "output_" + fileWithoutExtension + (if attempt < 1 then "" else attempt.ToString()) + ".csv"
+let rec generateOutputName (filename: string) attempt =
+    let output = Path.GetDirectoryName(filename) + @"\" + "output_" + Path.GetFileNameWithoutExtension(filename) + (if attempt < 1 then "" else "_" + attempt.ToString()) + ".csv"
+    if File.Exists output
+    then generateOutputName filename (attempt + 1)
+    else output
 
 let typeCheckingToCSV (filename: string) =
-    let outputCSV = generateOutputName (Path.GetFileNameWithoutExtension(filename)) 0
-    use outFile = new StreamWriter(Path.GetDirectoryName(filename) + @"\" + outputCSV)
-    outFile.WriteLine("file,sheet,cell,function,expected,actual,error_type,error_message")
-    parseAndTypeCheck filename |> (errorsToCSVFormat filename) |> Seq.iter outFile.WriteLine
+    let errors = parseAndTypeCheck filename
+    if errors.Count > 0
+    then
+        use outFile = new StreamWriter(generateOutputName filename 0)
+        outFile.WriteLine("file,sheet,cell,function,expected,actual,error_type,error_message")
+        errors |> (errorsToCSVFormat filename) |> Seq.iter outFile.WriteLine
 
 [<EntryPoint>]
 let main argv =

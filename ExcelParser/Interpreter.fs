@@ -11,7 +11,7 @@ let mutable checkedCells = new Dictionary<String, Dictionary<String, XLType>>()
 let mutable errorBuffer = new Queue<Error>()
 
 let typeJoin (types: list<XLType>) =
-    String.concat "/" (List.map (fun (input: XLType) -> input.print()) types)
+    String.concat "," (List.map (fun (input: XLType) -> input.print()) types)
 
 let condenseTypes (types: Set<XLType>) =
     let convertSimpleTypesToSets x =
