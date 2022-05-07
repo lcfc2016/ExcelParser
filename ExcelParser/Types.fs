@@ -31,6 +31,7 @@ type TokenType =
     // Misc
     //| Let
     | Percentage
+    | FileReference
     | SheetReference
     | CellReference
     | CellRange
@@ -71,7 +72,7 @@ type XLFunc =
 and Function =
     { inputs: List<XLType>; output: XLType; minArity: int; repr: String }
     member this.maxArity() = this.inputs.Length
-    member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
+    member this.inputList() = String.concat "," (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and SetFunction = { input: XLType; output: XLType; repr: String }
 
@@ -79,7 +80,7 @@ and GenericFunction =
     { inputs: List<XLType>; minimumOutputs: Int32; maximumOutputs: Int32; repr: String }
     member this.minimumClauses() = this.inputs.Length + this.minimumOutputs
     member this.maximumClauses() = this.inputs.Length + this.maximumOutputs
-    member this.inputList() = String.concat ", " (List.map (fun (input: XLType) -> input.print() ) this.inputs)
+    member this.inputList() = String.concat "," (List.map (fun (input: XLType) -> input.print() ) this.inputs)
 
 and Expression =
     | Leaf of Value
@@ -114,15 +115,18 @@ type Cell =
 //    | TypeChecked of TypeCheckedCell
 
 and UnparsedCell = { address: String; column: String; row: int; value: String; isFormula: bool }
-and ParsedCell = { column: String; row: int; ast: Expression }
-//and TypeCheckedCell = { outType: XLType; errors: List<String> }
+and ParsedCell =
+    | Success of CompletedParse
+    | Failure of FailedParse
+and CompletedParse = { column: String; row: int; ast: Expression }
+and FailedParse = string
 
 type TypeStatus =
     | Match = 0
     | PartialHandling = 1
     | Mismatch = 2
 
-type Error = (string * string * string * string * string * string)
+type Error = { sheet: string; cell: string; f: string; expected: string; actual: string; errorType: string; errorMessage: string }
 
 type ErrorFormat =
     | PrettyPrint

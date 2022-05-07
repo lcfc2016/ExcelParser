@@ -11,7 +11,7 @@ let mutable checkedCells = new Dictionary<String, Dictionary<String, XLType>>()
 let mutable errorBuffer = new Queue<Error>()
 
 let typeJoin (types: list<XLType>) =
-    String.concat ", " (List.map (fun (input: XLType) -> input.print()) types)
+    String.concat "/" (List.map (fun (input: XLType) -> input.print()) types)
 
 let condenseTypes (types: Set<XLType>) =
     let convertSimpleTypesToSets x =
@@ -33,7 +33,15 @@ let getFunctionDetails f =
 
 let addError sheet cell errorType f actual =
     let funcDetails = getFunctionDetails f
-    errorBuffer.Enqueue((sheet, cell, errorType.ToString(), (fst funcDetails), (snd funcDetails), typeJoin actual))
+    errorBuffer.Enqueue({
+        sheet = sheet;
+        cell = cell;
+        f = (fst funcDetails);
+        expected = (snd funcDetails);
+        actual = typeJoin actual;
+        errorType = errorType.ToString();
+        errorMessage = ""
+    })
 
 let checkTypes expected actual =
     match expected with
@@ -69,10 +77,13 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
         | Range (minRow, maxRow, minCol, maxCol) ->
             let activeCells = Map.filter
                                 (fun name (cell: ParsedCell) ->
-                                    cell.row >= minRow
-                                    && cell.row <= maxRow
-                                    && cell.column >= minCol
-                                    && cell.column <= maxCol)
+                                    match cell with
+                                    | Success cell ->
+                                        cell.row >= minRow
+                                        && cell.row <= maxRow
+                                        && cell.column >= minCol
+                                        && cell.column <= maxCol
+                                    | Failure f -> false)
                                 (cellLookup.GetValueOrDefault(sheet))
             let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheet name) (Set (Seq.map fst (Map.toSeq activeCells)))
             condenseTypes returnedTypes
@@ -82,10 +93,13 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
             | Range (minRow, maxRow, minCol, maxCol) ->
                 let activeCells = Map.filter
                                     (fun name (cell: ParsedCell) ->
-                                        cell.row >= minRow
-                                        && cell.row <= maxRow
-                                        && cell.column >= minCol
-                                        && cell.column <= maxCol)
+                                        match cell with
+                                        | Success cell ->
+                                            cell.row >= minRow
+                                            && cell.row <= maxRow
+                                            && cell.column >= minCol
+                                            && cell.column <= maxCol
+                                        | Failure f -> false)
                                     (cellLookup.GetValueOrDefault(sheet))
                 let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheet name) (Set (Seq.map fst (Map.toSeq activeCells)))
                 condenseTypes returnedTypes
@@ -136,11 +150,29 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
 and fetchTypeOrParseTypes sheet cell =
     checkedCells.GetValueOrDefault(sheet).GetValueOrDefault(
         cell,
-        walkAST sheet cell (cellLookup.GetValueOrDefault(sheet).GetValueOrDefault(cell).ast)
+        walkAST sheet cell (
+            match cellLookup.GetValueOrDefault(sheet).GetValueOrDefault(cell) with
+            | Success s -> s.ast
+            | Failure f -> Leaf ( Constant ( f, SimpleType (TypeEnum.General) ) )
+        )
     )
 
 let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
-    Map.map (fun address (cell: ParsedCell) -> (fetchTypeOrParseTypes sheet address)) cellMap
+    Map.map (fun address (cell: ParsedCell) ->
+                match cell with
+                | Success s -> (fetchTypeOrParseTypes sheet address)
+                | Failure f ->
+                    errorBuffer.Enqueue({
+                        sheet = sheet;
+                        cell = address;
+                        f = "";
+                        expected = "";
+                        actual = "";
+                        errorType = "parseError";
+                        errorMessage = f
+                    })
+                    SimpleType (TypeEnum.General))
+            cellMap
 
 let run (astMap: Map<String, Map<String, ParsedCell>>) =
     // Initialise errorFormat, global AST lookup and dictionary of known cell types

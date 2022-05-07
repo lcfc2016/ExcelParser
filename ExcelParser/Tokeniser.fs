@@ -35,11 +35,12 @@ let tokenExprs = [
     textTokenExpr;
     boolTokenExpr;
     errorTokenExpr;
-    // Cross-sheet reference
+    // Out of sheet reference
+    {regex = Regex(@"^(?:'.*?\[.*?\][^\\/?*\[\]]+?'|\[.*?\][^-'*\[\]:/?();{}#""=<>&+^%,\s]+)!"); tokType = FileReference};
     {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Functions
     {regex = Regex(@"^(?:_xlfn\.)?ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
-    {regex = Regex(@"^(?:_xlfn\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
+    {regex = Regex(@"^(?:_xlfn\.|_xll\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
     // Misc
     //{regex = Regex(@"^let"); tokType = Let};
     {regex = Regex(@"^$?[a-z]{0,3}$?\d+:$?[a-z]{0,3}$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};

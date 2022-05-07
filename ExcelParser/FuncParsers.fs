@@ -81,8 +81,8 @@ let parsePostfixOp (token: Token) =
     | _ -> invalidOp ("Parse error at " + token.value)
 
 let lowerAndRemovePrefix (string: String) =
-    (if string.Contains("_xlfn.", StringComparison.CurrentCultureIgnoreCase)
-    then string.Substring(6)
+    (if string.Contains("_xlfn.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(6)
+    elif string.Contains("_xll.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(5)
     else string).ToLower()
 
 let parseFunc (token: Token) =
