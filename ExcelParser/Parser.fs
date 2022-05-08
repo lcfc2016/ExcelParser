@@ -57,13 +57,11 @@ and parseVal () =
         expect RightBracket
         expr
     | tok when tok.tokenType = LeftBrace ->
-        let args = Values ( parseLiteralArray () )
-        expect RightBrace
-        args
+        Values ( parseLiteralArray () )
     | tok when isLiteral tok ->
         Leaf (parseLiteral tok)
     | tok when tok.tokenType = CellReference ->
-        Leaf (Reference (tok.value))
+        Leaf (Reference (tok.value.Replace("$", "")))
     | tok when tok.tokenType = FuncToken ->
         expect LeftBracket
         let args = (if tokens.Peek().tokenType <> RightBracket
@@ -95,9 +93,9 @@ and parseVal () =
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Leaf (Value.Range (1, 1048576, cols.[0], cols.[1]) )
     | tok when tok.tokenType = CellRange ->
-        let elements = Regex.Match(tok.value, @"$?([a-z]{0,3})$?(\d+):$?([a-z]{0,3})$?(\d+)", RegexOptions.IgnoreCase).Groups;
+        let elements = Regex.Match(tok.value, @"\$?([a-z]{0,3})\$?(\d+):\$?([a-z]{0,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups;
         Leaf (Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value) )
-    | value -> invalidOp ("Error at " + value.value)
+    | value -> invalidOp ("Error at " + value.value + ", " + tokens.Peek().value)
 
 and parseLiteralArray () =
     let rec recur rows current =
@@ -111,8 +109,11 @@ and parseLiteralArray () =
             if List.forall (fun lst -> List.length lst = dimension) rows
             then List.concat (rows @ current)
             else invalidOp ("2D array with uneven dimensions")
-        | tok -> invalidOp ("Error at " + tok.value)
-    recur [] []
+        | tok -> invalidOp ("Error at " + tok.value + ", " + tokens.Peek().value)
+    let result = recur [] []
+    match result with
+    | [] -> invalidOp ("Empty set near " + tokens.Peek().value)
+    | _ -> result
 
 and parseList () =
     let args = [parseExpr 0]
@@ -121,7 +122,7 @@ and parseList () =
         ignore (tokens.Dequeue())
         args @ parseList ()
     | RightBracket -> args
-    | _ -> invalidOp ("Error at " + tokens.Peek().value)
+    | _ -> invalidOp ("Error at " + tokens.Peek().value + ", " + tokens.Peek().value)
 
 and parseClause clauses =
     let clause = parseExpr 0
@@ -135,12 +136,12 @@ and parseClause clauses =
 and parseRef sheetName =
     match tokens.Dequeue() with
     | tok when tok.tokenType = CellReference ->
-        Reference (tok.value)
+        Reference (tok.value.Replace("$", ""))
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Value.Range (1, 1048576, cols.[0], cols.[1])
     | tok when tok.tokenType = CellRange ->
-        let elements = Regex.Match(tok.value, @"$?([a-z]{0,3})$?(\d+):$?([a-z]{0,3})$?(\d+)", RegexOptions.IgnoreCase).Groups;
+        let elements = Regex.Match(tok.value, @"\$?([a-z]{0,3})\$?(\d+):\$?([a-z]{0,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups;
         Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
     | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName)
 

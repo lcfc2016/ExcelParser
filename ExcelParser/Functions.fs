@@ -332,11 +332,8 @@ let linest = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeri
 let logest = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LOGEST"}
 let logNormDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "LOGNORM.DIST"}
 let logNormInv = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "LOGNORM.INV"}
-let maxa = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MAXA"}
 // sumIfs problem
 // let maxifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MAXIFS"}
-let median = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MEDIAN"}
-let mina = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MINA"}
 // sumIfs problem
 // let minifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MINIFS"}
 let negBinomDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "NEGBINOM.DIST"}
@@ -408,9 +405,9 @@ let substitute = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Str; S
 let t = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "T" }
 let text = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 2; repr = "TEXT" }
 let textJoin = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Bool; ] @ [ for i in 1..252 -> ignore i; SimpleType TypeEnum.Str ]; output = SimpleType TypeEnum.Str; minArity = 3; repr = "TEXTJOIN" }
-let uniChar = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "CHAR" }
-let uniCode = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "CODE" }
 let trim = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "TRIM" }
+let uniChar = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "UNICHAR" }
+let uniCode = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "UNICODE" }
 let upper = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "UPPER" }
 let value = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "VALUE" }
 let valueToText = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "VALUETOTEXT" }

@@ -26,6 +26,10 @@ let xlsxReader (filename: string) =
     use workbook = new XLWorkbook(filename)
     Map [ for sheet in workbook.Worksheets -> (normaliseSheetName sheet.Name, readSheet sheet) ]
 
+let isProtected (filename: string) =
+    use workbook = new XLWorkbook(filename)
+    workbook.IsPasswordProtected// || workbook.IsProtected
+
 let testXLRead testWB =
     let parsedWB = xlsxReader(testWB)
     Map.map (fun name sheet ->

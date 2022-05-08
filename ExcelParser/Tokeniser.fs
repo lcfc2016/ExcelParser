@@ -9,7 +9,7 @@ type TokenExprs = { regex: Regex; tokType: TokenType }
 
 let numericTokenExpr = {regex = Regex(@"^\d+(?:\.\d+)?"); tokType = Number};
 let textTokenExpr = {regex = Regex(@"^"".*?"""); tokType = Text};
-let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b", RegexOptions.IgnoreCase); tokType = Boolean};
+let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b(?!\()", RegexOptions.IgnoreCase); tokType = Boolean};
 let errorTokenExpr = {regex = Regex(@"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)", RegexOptions.IgnoreCase); tokType = XLError};
 
 let tokenExprs = [
@@ -30,22 +30,22 @@ let tokenExprs = [
     {regex = Regex(@"^[*/]"); tokType = Factor};
     {regex = Regex(@"^\^"); tokType = Expt};
     {regex = Regex(@"^%"); tokType = Percentage};
+    // Out of sheet reference
+    {regex = Regex(@"^(?:'.*?\[.*?\][^\\/?*\[\]]+?'|\[.*?\][^-'*\[\]:/?();{}#""=<>&+^%,\s]+)!"); tokType = FileReference};
+    {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Literals
     numericTokenExpr;
     textTokenExpr;
     boolTokenExpr;
     errorTokenExpr;
-    // Out of sheet reference
-    {regex = Regex(@"^(?:'.*?\[.*?\][^\\/?*\[\]]+?'|\[.*?\][^-'*\[\]:/?();{}#""=<>&+^%,\s]+)!"); tokType = FileReference};
-    {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Functions
     {regex = Regex(@"^(?:_xlfn\.)?ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
     {regex = Regex(@"^(?:_xlfn\.|_xll\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
     // Misc
     //{regex = Regex(@"^let"); tokType = Let};
-    {regex = Regex(@"^$?[a-z]{0,3}$?\d+:$?[a-z]{0,3}$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
-    {regex = Regex(@"^$?[a-z]{0,3}:$?[a-z]{0,3}", RegexOptions.IgnoreCase); tokType = ColRange};
-    {regex = Regex(@"^$?[a-z]+$?[1-9]\d*", RegexOptions.IgnoreCase); tokType = CellReference}
+    {regex = Regex(@"^\$?[a-z]{0,3}\$?\d+:\$?[a-z]{0,3}\$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
+    {regex = Regex(@"^\$?[a-z]{0,3}:\$?[a-z]{0,3}", RegexOptions.IgnoreCase); tokType = ColRange};
+    {regex = Regex(@"^\$?[a-z]+\$?[1-9]\d*", RegexOptions.IgnoreCase); tokType = CellReference}
     
 ]
 

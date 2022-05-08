@@ -50,14 +50,15 @@ let checkTypes expected actual =
         then TypeStatus.Match
         else match actual with
              | SimpleType actual ->
-                 if expected = actual
+                // Debatable as to whether the latter clause (and line 61) to accept general for actual or not is the correct choice, add as strict flag?
+                 if expected = actual || actual = TypeEnum.General
                  then TypeStatus.Match
                  else TypeStatus.Mismatch
              | ComplexType actual -> TypeStatus.PartialHandling
     | ComplexType expected ->
         match actual with
         | SimpleType actual ->
-            if Set.contains actual expected
+            if Set.contains actual expected || actual = TypeEnum.General
             then TypeStatus.Match
             else TypeStatus.Mismatch
         | ComplexType actual ->
@@ -86,24 +87,41 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                                     | Failure f -> false)
                                 (cellLookup.GetValueOrDefault(sheet))
             let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheet name) (Set (Seq.map fst (Map.toSeq activeCells)))
-            condenseTypes returnedTypes
-        | Sheet (sheet, reference) ->
-            match reference with
-            | Reference name -> fetchTypeOrParseTypes sheet name
-            | Range (minRow, maxRow, minCol, maxCol) ->
-                let activeCells = Map.filter
-                                    (fun name (cell: ParsedCell) ->
-                                        match cell with
-                                        | Success cell ->
-                                            cell.row >= minRow
-                                            && cell.row <= maxRow
-                                            && cell.column >= minCol
-                                            && cell.column <= maxCol
-                                        | Failure f -> false)
-                                    (cellLookup.GetValueOrDefault(sheet))
-                let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheet name) (Set (Seq.map fst (Map.toSeq activeCells)))
-                condenseTypes returnedTypes
-            | _-> invalidOp ("Cross-sheet reference in cell " + cell + " not followed by cell or range")
+            if returnedTypes.IsEmpty
+            then SimpleType(TypeEnum.General)
+            else condenseTypes returnedTypes
+        | Sheet (sheetRef, reference) ->
+            if cellLookup.ContainsKey(sheetRef)
+            then
+                match reference with
+                | Reference name -> fetchTypeOrParseTypes sheetRef name
+                | Range (minRow, maxRow, minCol, maxCol) ->
+                    let activeCells = Map.filter
+                                        (fun name (cell: ParsedCell) ->
+                                            match cell with
+                                            | Success cell ->
+                                                cell.row >= minRow
+                                                && cell.row <= maxRow
+                                                && cell.column >= minCol
+                                                && cell.column <= maxCol
+                                            | Failure f -> false)
+                                        (cellLookup.GetValueOrDefault(sheetRef))
+                    let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheetRef name) (Set (Seq.map fst (Map.toSeq activeCells)))
+                    if returnedTypes.IsEmpty
+                    then SimpleType(TypeEnum.General)
+                    else condenseTypes returnedTypes
+                | _-> invalidOp ("Cross-sheet reference in cell " + cell + " not followed by cell or range")
+            else
+                errorBuffer.Enqueue({
+                    sheet = sheet;
+                    cell = cell;
+                    f = "";
+                    expected = "";
+                    actual = "";
+                    errorType = "parseError";
+                    errorMessage = "Invalid sheet reference: " + sheetRef
+                })
+                SimpleType (TypeEnum.General)
     | Node node ->
         match node with
         | Unary (unary, arg) ->
@@ -148,14 +166,34 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                                 (Set.ofList values))
 
 and fetchTypeOrParseTypes sheet cell =
-    checkedCells.GetValueOrDefault(sheet).GetValueOrDefault(
-        cell,
-        walkAST sheet cell (
-            match cellLookup.GetValueOrDefault(sheet).GetValueOrDefault(cell) with
-            | Success s -> s.ast
-            | Failure f -> Leaf ( Constant ( f, SimpleType (TypeEnum.General) ) )
-        )
-    )
+    if cellLookup.ContainsKey(sheet)
+    then
+        if checkedCells.GetValueOrDefault(sheet).ContainsKey(cell)
+        then checkedCells.GetValueOrDefault(sheet).GetValueOrDefault(cell)
+        else
+            let foundType = (
+                if cellLookup.GetValueOrDefault(sheet).ContainsKey(cell)
+                then
+                    walkAST sheet cell (
+                        match cellLookup.GetValueOrDefault(sheet).GetValueOrDefault(cell) with
+                        | Success s -> s.ast
+                        | Failure f -> Leaf ( Constant ( f, SimpleType (TypeEnum.General) ) )
+                    )
+                else SimpleType (TypeEnum.General)
+            )
+            checkedCells.GetValueOrDefault(sheet).Add(cell, foundType)
+            foundType
+    else
+        errorBuffer.Enqueue({
+            sheet = sheet;
+            cell = cell;
+            f = "";
+            expected = "";
+            actual = "";
+            errorType = "parseError";
+            errorMessage = "Invalid sheet reference: " + sheet
+        })
+        SimpleType (TypeEnum.General)
 
 let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
     Map.map (fun address (cell: ParsedCell) ->
