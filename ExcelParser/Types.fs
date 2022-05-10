@@ -14,7 +14,6 @@ type TokenType =
     | Semicolon
     // Function forms
     | FuncToken
-    | Case
     // Binary operators
     | Equality
     | Comparison
@@ -68,6 +67,8 @@ type XLFunc =
     | FixedArity of Function
     | Variadic of SetFunction
     | Generic of GenericFunction
+    | Switch
+    | Ifs
 
 and Function =
     { inputs: List<XLType>; output: XLType; minArity: int; repr: String }
@@ -93,9 +94,8 @@ and SubExpr =
     | Func of func:Function * args:List<Expression>
     | SetFunc of func:SetFunction * args:List<Expression>
     | GenericFunc of func:GenericFunction * args:List<Expression>
-    | CaseStatement of clauses:List<CaseClause>
-
-and CaseClause = { cond: Expression; result: Expression }
+    | SwitchFunc of args:List<Expression>
+    | IfsFunc of args:List<Expression>
 
 and Array = List<Value>
 

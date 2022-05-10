@@ -75,14 +75,14 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = "C:/Users/bjs73/Documents/MSc/IRP/final_dataset/Info1/Student055_1FAULTS_FAULTVERSION1.xlsx"
+    let testFile = "C:/Users/bjs73/Documents/MSc/IRP/test_sheet_1.xlsx"
     let code = "('1_Biegemoment'!Z15)"
     //debugParseASTs testFile
     //createAST code true |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)
     //parseAndPrintASTs testFile
-    //typeCheckAndPrint testFile
-    typeCheckingToCSV testFile
+    typeCheckAndPrint testFile
+    //typeCheckingToCSV testFile
 #else
     if argv.Length < 1
     then printfn "Please provide xlsx files to parse and type check. Flag -p enables AST print mode, -c CSV output mode"

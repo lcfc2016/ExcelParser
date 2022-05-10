@@ -81,10 +81,14 @@ and parseVal () =
             if f.minimumClauses() <= args.Length && args.Length <= f.maximumClauses()
             then Node ( GenericFunc (f, args))
             else invalidOp (f.repr + " expects between " + f.minimumClauses().ToString() + " and " + f.maximumClauses().ToString() + " arguments, got " + args.Length.ToString())
-    | tok when tok.tokenType = Case ->
-        expect LeftBracket
-        let clauses = parseClause []
-        Node ( CaseStatement clauses)
+        | Switch ->
+            if 3 <= args.Length && args.Length <= 253
+            then Node ( SwitchFunc args )
+            else invalidOp ("SWITCH expects between 3 and 253 arguments, got " + args.Length.ToString())
+        | Ifs ->
+            if 2 <= args.Length && args.Length <= 254 && (args.Length % 2 = 0)
+            then Node ( IfsFunc args )
+            else invalidOp ("IFS expects between 2 and 254 arguments, got " + args.Length.ToString())
     | tok when tok.tokenType = SheetReference ->
         Leaf (Sheet (tok.value.Trim('!').Trim('''), parseRef tok.value))
     | tok when tok.tokenType = FileReference ->
@@ -123,15 +127,6 @@ and parseList () =
         args @ parseList ()
     | RightBracket -> args
     | _ -> invalidOp ("Error at " + tokens.Peek().value + ", " + tokens.Peek().value)
-
-and parseClause clauses =
-    let clause = parseExpr 0
-    expect Comma
-    let result = parseExpr 0
-    match tokens.Dequeue().tokenType with
-    | Comma -> parseClause (clauses @ [{cond = clause; result = result}])
-    | RightBracket -> clauses @ [{cond = clause; result = result}]
-    | _ -> invalidOp ("Error in case statement at " + tokens.Peek().value)
 
 and parseRef sheetName =
     match tokens.Dequeue() with

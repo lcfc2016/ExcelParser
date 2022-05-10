@@ -39,17 +39,18 @@ let rec printParsedCell expr indentLevel =
         | GenericFunc (f, args) ->
             printfn "%s%s" indent f.repr
             Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
-        | CaseStatement cases -> evalCases cases (indentLevel + 1)
+        | SwitchFunc args ->
+            printfn "%sSWITCH" indent
+            Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
+        | IfsFunc args ->
+            printfn "%sIFS" indent
+            Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
     | Values values ->
         printfn "{%s%s}" indent (
             String.Join(", ", List.map (fun v -> match v with
                                                  | Constant (value, xlType) -> value
                                                  | _ -> invalidOp "Unexpected reference in literal array")
                                         values))
-
-and evalCases cases indentLevel =
-    let indent = String.replicate indentLevel "\t"
-    Seq.iter (fun case -> printfn "%s%A -> %A" indent case.cond case.result) cases
 
 let run cellName expr =
     printfn "%s=" cellName

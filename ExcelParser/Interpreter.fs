@@ -30,6 +30,7 @@ let getFunctionDetails f =
     | FixedArity f -> (f.repr, f.inputList())
     | Generic f -> (f.repr, f.inputList())
     | Variadic f -> (f.repr, f.input.print())
+    | _ -> ("SWITCH", "")
 
 let addError sheet cell errorType f actual =
     let funcDetails = getFunctionDetails f
@@ -123,42 +124,85 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                 })
                 SimpleType (TypeEnum.General)
     | Node node ->
+        let getType = walkAST sheet cell
         match node with
         | Unary (unary, arg) ->
-            let actual = (walkAST sheet cell arg)
+            let actual = getType arg
             let typeStatus = checkTypes unary.inputs.Head actual
             if typeStatus <> TypeStatus.Match
             then addError sheet cell typeStatus (FixedArity unary) [actual]
             unary.output
         | Binary (op, left, right) ->
-            let actualLeft = (walkAST sheet cell left)
-            let actualRight = (walkAST sheet cell right)
+            let actualLeft = getType left
+            let actualRight = getType right
             let leftOpTypeStatus = checkTypes op.inputs.Head actualLeft
             let rightOpTypeStatus = checkTypes op.inputs.Head actualLeft
             if leftOpTypeStatus <> TypeStatus.Match || rightOpTypeStatus <> TypeStatus.Match
             then addError sheet cell (max leftOpTypeStatus rightOpTypeStatus) (FixedArity op) [actualLeft; actualRight]
             op.output
         | Func (f, args) ->
-            let actualTypes = List.map (fun t -> walkAST sheet cell t) args
+            let actualTypes = List.map getType args
             let typeStatuses = List.map2 (fun e a -> checkTypes e a) (List.take(actualTypes.Length) f.inputs) actualTypes
             if List.length args > 0 && List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (FixedArity f) actualTypes
             f.output
         | SetFunc (f, args) ->
-            let actualTypes = List.map (fun t -> walkAST sheet cell t) args
+            let actualTypes = List.map getType args
             let typeStatuses = List.map (fun a -> checkTypes f.input a) actualTypes
             if List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (Variadic f) [(condenseTypes (Set actualTypes))]
             f.output
         | GenericFunc (f, args) ->
             let inputs, outputs = List.splitAt f.inputs.Length args
-            let inputTypes = List.map (fun t -> walkAST sheet cell t) inputs
+            let inputTypes = List.map getType inputs
             let typeStatuses = List.map2 (fun e a -> checkTypes e a) f.inputs inputTypes
             if (not typeStatuses.IsEmpty) && List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (Generic f) inputTypes
-            condenseTypes (Set.map (fun t -> walkAST sheet cell t) (Set outputs))
-        | CaseStatement cases ->
-            (SimpleType TypeEnum.General) // TODO
+            condenseTypes (Set.map getType (Set outputs))
+        | SwitchFunc args ->
+            let inputType = getType args.Head
+            let rec recur remaining outTypes =
+                match remaining with
+                | [] -> condenseTypes (Set.ofList outTypes)
+                | [x] -> recur [] ((getType x) :: outTypes)
+                | x::xs ->
+                    let thisInputType = getType x
+                    let typeCheck = checkTypes inputType thisInputType
+                    if typeCheck > TypeStatus.Match
+                    then errorBuffer.Enqueue({
+                        sheet = sheet;
+                        cell = cell;
+                        f = "SWITCH";
+                        expected = inputType.print();
+                        actual = thisInputType.print();
+                        errorType = typeCheck.ToString();
+                        errorMessage = ""
+                    })
+                    recur xs.Tail ((getType (xs.Head)) :: outTypes)
+            recur args.Tail []
+        | IfsFunc args ->
+            let inputType = (SimpleType TypeEnum.Bool)
+            let rec recur remaining outTypes =
+                match remaining with
+                | [] -> condenseTypes (Set.ofList outTypes)
+                | x::xs ->
+                    let thisInputType = getType x
+                    let typeCheck = checkTypes inputType thisInputType
+                    if typeCheck > TypeStatus.Match
+                    then errorBuffer.Enqueue({
+                        sheet = sheet;
+                        cell = cell;
+                        f = "IFS";
+                        expected = inputType.print();
+                        actual = thisInputType.print();
+                        errorType = typeCheck.ToString();
+                        errorMessage = ""
+                    })
+                    recur xs.Tail ((getType (xs.Head)) :: outTypes)
+            recur args []
+            
+            
+
     | Values values ->
         condenseTypes (Set.map (fun v -> match v with
                                          | Constant (value, xlType) -> xlType

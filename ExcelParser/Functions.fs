@@ -272,7 +272,7 @@ let sqrt = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnu
 let sqrtPi = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "SQRTPI" }
 let subTotal = { inputs =  [ for i in 1..252 -> ignore i; SimpleType TypeEnum.Numeric ]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUBTOTAL" }
 let sumIf = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUMIF" }
-// let sumIfs = Needs some thought
+let sumIfs = { inputs = [SimpleType TypeEnum.Numeric] @ [ for i in 1..254 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "SUMIFS" }
 let sumX2My2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUMX2MY2" }
 let sumX2Py2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUMX2PY2" }
 let sumXMy2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUMXMY2" }
@@ -282,8 +282,7 @@ let trunc = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEn
 
 // Statistical
 let averageIf = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "AVERAGEIF"}
-// As per sumIfs
-// let averageifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "AVERAGEIFS"}
+let averageIfs = { inputs = [SimpleType TypeEnum.Numeric] @ [ for i in 1..254 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "AVERAGEIFS" }
 let betaDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "BETA.DIST"}
 let betaInv = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "BETA.INV"}
 let binomDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "BINOM.DIST"}
@@ -297,10 +296,9 @@ let chiSqTest = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Num
 let confidenceNorm = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "CONFIDENCE.NORM"}
 let confidenceT = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "CONFIDENCE.T"}
 let correl = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "CORREL"}
-let countblank = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COUNTBLANK"}
-let countif = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "COUNTIF"}
-// sumIfs problem
-// let countifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COUNTIFS"}
+let countBlank = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COUNTBLANK"}
+let countIf = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "COUNTIF"}
+let countIfs = { inputs = [ for i in 1..254 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "COUNTIFS" }
 let covarianceP = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "COVARIANCE.P"}
 let covarianceS = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "COVARIANCE.S"}
 let exponDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "EXPON.DIST"}
@@ -332,10 +330,8 @@ let linest = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeri
 let logest = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LOGEST"}
 let logNormDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "LOGNORM.DIST"}
 let logNormInv = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "LOGNORM.INV"}
-// sumIfs problem
-// let maxifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MAXIFS"}
-// sumIfs problem
-// let minifs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MINIFS"}
+let maxIfs = { inputs = [SimpleType TypeEnum.Numeric] @ [ for i in 1..254 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "MAXIFS" }
+let minIfs = { inputs = [SimpleType TypeEnum.Numeric] @ [ for i in 1..254 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "MINIFS" }
 let negBinomDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "NEGBINOM.DIST"}
 let normDist = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "NORM.DIST"}
 let normInv = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "NORM.INV"}

@@ -87,6 +87,8 @@ let lowerAndRemovePrefix (string: String) =
 
 let parseFunc (token: Token) =
     match lowerAndRemovePrefix token.value with
+    | "ifs" -> Ifs
+    | "switch" -> Switch
     // Fixed Arity functions
     | "date" -> (FixedArity date)
     | "datevalue" -> (FixedArity dateValue)
@@ -327,6 +329,7 @@ let parseFunc (token: Token) =
     | "sqrtpi" -> (FixedArity sqrtPi)
     | "subtotal" -> (FixedArity subTotal)
     | "sumif" -> (FixedArity sumIf)
+    | "sumifs" -> (FixedArity sumIfs)
     | "sumx2my2" -> (FixedArity sumX2My2)
     | "sumx2py2" -> (FixedArity sumX2Py2)
     | "sumxmy2" -> (FixedArity sumXMy2)
@@ -334,6 +337,7 @@ let parseFunc (token: Token) =
     | "tanh" -> (FixedArity tanh)
     | "trunc" -> (FixedArity trunc)
     | "averageif" -> (FixedArity averageIf)
+    | "averageifs" -> (FixedArity averageIfs)
     | "beta.dist" -> (FixedArity betaDist)
     | "beta.inv" -> (FixedArity betaInv)
     | "binom.dist" -> (FixedArity binomDist)
@@ -347,8 +351,9 @@ let parseFunc (token: Token) =
     | "confidence.norm" -> (FixedArity confidenceNorm)
     | "confidence.t" -> (FixedArity confidenceT)
     | "correl" -> (FixedArity correl)
-    | "countblank" -> (FixedArity countblank)
-    | "countif" -> (FixedArity countif)
+    | "countblank" -> (FixedArity countBlank)
+    | "countif" -> (FixedArity countIf)
+    | "countifs" -> (FixedArity countIfs)
     | "covariance.p" -> (FixedArity covarianceP)
     | "covariance.s" -> (FixedArity covarianceS)
     | "expon.dist" -> (FixedArity exponDist)
@@ -380,6 +385,8 @@ let parseFunc (token: Token) =
     | "logest" -> (FixedArity logest)
     | "lognorm.dist" -> (FixedArity logNormDist)
     | "lognorm.inv" -> (FixedArity logNormInv)
+    | "maxifs" -> (FixedArity maxIfs)
+    | "minifs" -> (FixedArity minIfs)
     | "negbinom.dist" -> (FixedArity negBinomDist)
     | "norm.dist" -> (FixedArity normDist)
     | "norm.inv" -> (FixedArity normInv)

@@ -39,7 +39,6 @@ let tokenExprs = [
     boolTokenExpr;
     errorTokenExpr;
     // Functions
-    {regex = Regex(@"^(?:_xlfn\.)?ifs(?=\()", RegexOptions.IgnoreCase); tokType = Case};
     {regex = Regex(@"^(?:_xlfn\.|_xll\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
     // Misc
     //{regex = Regex(@"^let"); tokType = Let};
