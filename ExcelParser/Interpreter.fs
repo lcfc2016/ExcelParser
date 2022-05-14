@@ -200,14 +200,13 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                     })
                     recur xs.Tail ((getType (xs.Head)) :: outTypes)
             recur args []
-            
-            
-
     | Values values ->
         condenseTypes (Set.map (fun v -> match v with
                                          | Constant (value, xlType) -> xlType
                                          | _ -> invalidOp "Unexpected reference in literal array")
                                 (Set.ofList values))
+    | Union union ->
+        condenseTypes (Set.map (fun v -> walkAST sheet cell v) (Set.ofList union))
 
 and fetchTypeOrParseTypes sheet cell =
     if cellLookup.ContainsKey(sheet)

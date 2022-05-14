@@ -19,7 +19,8 @@ let rec printParsedCell expr indentLevel =
                                               | Reference name -> name
                                               | Constant (value, xlType) -> value
                                               | Range(minRow, maxRow, minCol, maxCol) ->
-                                                String.Join("", minCol, (minRow.ToString()), maxCol, (maxRow.ToString()))
+                                                sprintf "%s%d:%s%d" minCol minRow maxCol maxRow
+                                                // String.Join("", minCol, (minRow.ToString()), maxCol, (maxRow.ToString()))
                                               | _ -> invalidOp "Invalid sheet reference chaining detected")
     | Node node ->
         match node with
@@ -51,6 +52,9 @@ let rec printParsedCell expr indentLevel =
                                                  | Constant (value, xlType) -> value
                                                  | _ -> invalidOp "Unexpected reference in literal array")
                                         values))
+    | Union union ->
+        printfn "%sUNION" indent
+        Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) union
 
 let run cellName expr =
     printfn "%s=" cellName

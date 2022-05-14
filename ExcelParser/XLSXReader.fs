@@ -6,6 +6,17 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 open Types
 
+let getNamedRanges (filename: String) =
+    use workbook = new XLWorkbook(filename)
+    let validRanges =
+        List.filter (fun (range: IXLNamedRange) ->
+                        let sheetNames = Set.ofList [ for subRange in range.Ranges -> subRange.Worksheet.Name ]
+                        sheetNames.Count = 1 )
+                        [ for range in workbook.NamedRanges.ValidNamedRanges() -> range ]
+    Map [ for range in validRanges ->
+            let sheet = [ for subRange in range.Ranges -> subRange.Worksheet.Name ].Head
+            ( range.Name.ToLower(), { sheet = sheet + "!"; ranges = [ for subRange in range.Ranges -> subRange.RangeAddress.ToString() ] } ) ]
+
 let readSheet (xlSheet: IXLWorksheet) =
     [ for cell in xlSheet.CellsUsed() -> {
             address = cell.Address.ToString(XLReferenceStyle.A1);

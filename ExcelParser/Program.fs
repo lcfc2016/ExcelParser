@@ -6,38 +6,46 @@ open System.Collections.Generic
 open Types
 
 
-let createAST input isFormula =
-    (input, isFormula) ||> Tokeniser.run |> Parser.run
+let createAST input isFormula namedRanges =
+    Tokeniser.run input isFormula namedRanges |> Parser.run
 
 let parseAndPrintASTs filename =
+    let namedRanges = XLSXReader.getNamedRanges filename
     printfn "%s" filename
     Map.iter (fun name contents ->
                printfn "%s" name
                ignore [ for (cell: UnparsedCell) in contents ->
                            try
-                               Printer.run cell.address (createAST cell.value cell.isFormula)
+                               Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)
                            with
                                | :? InvalidOperationException as ex -> printfn "%s -> Unable to parse: %s" cell.address ex.Message ])
              (XLSXReader.xlsxReader(filename))
 
-let debugParseASTs filename =
+let debugParseASTs filename cellAddress =
+    let namedRanges = XLSXReader.getNamedRanges filename
     printfn "%s" filename
     Map.iter (fun name contents ->
                printfn "%s" name
                ignore [ for (cell: UnparsedCell) in contents ->
-               if cell.address = "C9" then Printer.run cell.address (createAST cell.value cell.isFormula)])
+                        if cell.address = cellAddress then Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)])
              (XLSXReader.xlsxReader(filename))
+
+let debugNamedRanges filename =
+    let namedRanges = XLSXReader.getNamedRanges filename
+    for range in namedRanges do
+        printfn "%s -> %s" range.Key (range.Value.ranges.ToString())
 
 let printTypeOutput (errors: Queue<Error>) =
     for error in errors do
         printfn "%s, %s, %s -> Expected %s, Got %s, %s" error.sheet error.cell error.f error.expected error.actual error.errorType
 
 let parseAndTypeCheck filename =
+    let namedRanges = XLSXReader.getNamedRanges filename
     let astMap = Map.map (fun name contents ->
                              Map [ for (cell: UnparsedCell) in contents ->
                                     ( cell.address,
                                         try
-                                            Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula) })
+                                            Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula namedRanges) })
                                         with
                                             | :? InvalidOperationException as ex -> Failure (ex.Message))])
                         (XLSXReader.xlsxReader(filename))
@@ -48,7 +56,7 @@ let typeCheckAndPrint filename =
     parseAndTypeCheck filename |> printTypeOutput
 
 let errorsToCSVFormat filename (errors: Queue<Error>) =
-    Seq.map(fun error ->
+    Seq.map(fun (error: Error) ->
         // String.Join(",", filename, error.sheet, error.cell, error.f, error.expected, error.actual, error.errorType, error.errorMessage)) errors
         sprintf "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"" filename error.sheet error.cell error.f error.expected error.actual error.errorType error.errorMessage) errors
 
@@ -75,8 +83,10 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = "C:/Users/bjs73/Documents/MSc/IRP/test_sheet_1.xlsx"
-    let code = "('1_Biegemoment'!Z15)"
+    let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\final_dataset\Payroll_Gradebook\CS220-Payroll_4FAULTS_FAULTVERSION1.xlsx"
+    //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
+    let code = "SUM((B:B,C:C))"
+    //debugNamedRanges testFile
     //debugParseASTs testFile
     //createAST code true |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)

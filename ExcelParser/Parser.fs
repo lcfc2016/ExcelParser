@@ -35,25 +35,29 @@ let parseLiteral (token: Token) =
         | XLError ->    SimpleType (TypeEnum.Error)
         | _ -> invalidOp ("Parse error at " + token.value))
 
-let rec parseExpr prec =
+let rec parseExpr prec expectUnion =
     let rec iter expr =
         let expr = if isPostfix (tokens.Peek())
                    then Node ( (Unary ((parsePostfixOp (tokens.Dequeue())), expr)))
                    else expr
-        if isBinary (tokens.Peek()) && getBinOpPrec (tokens.Peek()) >= prec
+        if expectUnion && tokens.Peek().tokenType = Comma
+        then
+            expect Comma
+            Union ( [expr] @ [parseExpr 0 expectUnion])
+        elif isBinary (tokens.Peek()) && getBinOpPrec (tokens.Peek()) >= prec
         then
             let op = tokens.Dequeue()
-            let right = parseExpr (getBinOpPrec op + (if (rightAssoc op) then 0 else 1))
+            let right = parseExpr (getBinOpPrec op + (if (rightAssoc op) then 0 else 1)) false
             iter (Node (Binary ((parseBinaryOp op), expr, right )))
         else expr
-    parseVal () |> iter
+    parseVal expectUnion |> iter
 
-and parseVal () =
+and parseVal expectUnion =
     match tokens.Dequeue() with
     | tok when isUnary tok ->
-        Node ( Unary ((parseUnaryOp tok), (parseExpr unaryPrecedence)))
+        Node ( Unary ((parseUnaryOp tok), (parseExpr unaryPrecedence false)))
     | tok when tok.tokenType = LeftBracket ->
-        let expr = parseExpr 0
+        let expr = parseExpr 0 expectUnion
         expect RightBracket
         expr
     | tok when tok.tokenType = LeftBrace ->
@@ -64,28 +68,38 @@ and parseVal () =
         Leaf (Reference (tok.value.Replace("$", "")))
     | tok when tok.tokenType = FuncToken ->
         expect LeftBracket
-        let args = (if tokens.Peek().tokenType <> RightBracket
-                    then parseList ()
-                    else [])
-        expect RightBracket
-        match parseFunc tok with
+        let f = parseFunc tok
+        match f with
         | FixedArity f -> 
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            expect RightBracket
             if f.minArity <= args.Length && args.Length <= f.maxArity()
                 then Node ( Func (f, args))
                 else invalidOp (f.repr + " expects " + f.inputs.Length.ToString() + " inputs, got " + args.Length.ToString())
         | Variadic f ->
+            let args =
+                match parseExpr 0 true with
+                | Union union -> union
+                | e -> [e]
+            expect RightBracket
             if args.Length > 0
             then Node ( SetFunc (f, args))
             else invalidOp ("No arguments provided to function: " + f.repr)
         | Generic f ->
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            expect RightBracket
             if f.minimumClauses() <= args.Length && args.Length <= f.maximumClauses()
             then Node ( GenericFunc (f, args))
             else invalidOp (f.repr + " expects between " + f.minimumClauses().ToString() + " and " + f.maximumClauses().ToString() + " arguments, got " + args.Length.ToString())
         | Switch ->
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            expect RightBracket
             if 3 <= args.Length && args.Length <= 253
             then Node ( SwitchFunc args )
             else invalidOp ("SWITCH expects between 3 and 253 arguments, got " + args.Length.ToString())
         | Ifs ->
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            expect RightBracket
             if 2 <= args.Length && args.Length <= 254 && (args.Length % 2 = 0)
             then Node ( IfsFunc args )
             else invalidOp ("IFS expects between 2 and 254 arguments, got " + args.Length.ToString())
@@ -120,7 +134,7 @@ and parseLiteralArray () =
     | _ -> result
 
 and parseList () =
-    let args = [parseExpr 0]
+    let args = [parseExpr 0 false]
     match tokens.Peek().tokenType with
     | Comma ->
         ignore (tokens.Dequeue())
@@ -142,7 +156,7 @@ and parseRef sheetName =
 
 let parse (tokenList: List<Token>) =
     tokens <- (Generic.Queue tokenList)
-    let result = parseExpr 0
+    let result = parseExpr 0 false
     expect End
     result
 

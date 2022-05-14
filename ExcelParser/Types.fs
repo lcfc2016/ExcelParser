@@ -35,6 +35,7 @@ type TokenType =
     | CellReference
     | CellRange
     | ColRange
+    | NamedRange
     | UnaryOp
     | Error
     | End
@@ -87,6 +88,7 @@ and Expression =
     | Leaf of Value
     | Node of SubExpr
     | Values of Array
+    | Union of ExpList
 
 and SubExpr =
     | Unary of func:Function * arg:Expression
@@ -98,6 +100,8 @@ and SubExpr =
     | IfsFunc of args:List<Expression>
 
 and Array = List<Value>
+
+and ExpList = List<Expression>
 
 and Value =
     | Reference of name:String
@@ -131,3 +135,5 @@ type Error = { sheet: string; cell: string; f: string; expected: string; actual:
 type ErrorFormat =
     | PrettyPrint
     | CSV
+
+type ParsedNamedRange = { sheet: string; ranges: List<string> }
