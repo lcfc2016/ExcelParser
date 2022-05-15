@@ -8,7 +8,7 @@ open Types
 [<Struct>]
 type TokenExprs = { regex: Regex; tokType: TokenType }
 
-let numericTokenExpr = {regex = Regex(@"^\d+(?:\.\d+)?"); tokType = Number}
+let numericTokenExpr = {regex = Regex(@"^[-+]?\d+(?:\.\d+)?"); tokType = Number}
 let textTokenExpr = {regex = Regex(@"^"".*?"""); tokType = Text}
 let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b(?!\()", RegexOptions.IgnoreCase); tokType = Boolean}
 let errorTokenExpr = {regex = Regex(@"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)", RegexOptions.IgnoreCase); tokType = XLError}
@@ -49,7 +49,7 @@ let tokenExprs = [
     cellRangeExpr;
     colRangeExpr;
     cellReferenceExpr;
-    {regex = Regex(@"^[a-z_\][\w\.?]*", RegexOptions.IgnoreCase); tokType = NamedRange}
+    {regex = Regex(@"^[a-z_\\][\w\.?]*", RegexOptions.IgnoreCase); tokType = NamedRange}
 ]
 
 let endToken = {value = "End"; tokenType = End}

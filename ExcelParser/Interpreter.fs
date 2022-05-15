@@ -25,15 +25,15 @@ let condenseTypes (types: Set<XLType>) =
          then ComplexType (typeSet)
          else SimpleType (Set.minElement typeSet)
 
-let getFunctionDetails f =
+let getFunctionDetails f (actual: list<XLType>) =
     match f with
-    | FixedArity f -> (f.repr, f.inputList())
+    | FixedArity f -> (f.repr, f.inputList(actual.Length))
     | Generic f -> (f.repr, f.inputList())
     | Variadic f -> (f.repr, f.input.print())
     | _ -> ("SWITCH", "")
 
-let addError sheet cell errorType f actual =
-    let funcDetails = getFunctionDetails f
+let addError sheet cell errorType f (actual: list<XLType>) =
+    let funcDetails = getFunctionDetails f actual
     errorBuffer.Enqueue({
         sheet = sheet;
         cell = cell;

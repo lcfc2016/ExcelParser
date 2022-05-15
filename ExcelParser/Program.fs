@@ -37,7 +37,7 @@ let debugNamedRanges filename =
 
 let printTypeOutput (errors: Queue<Error>) =
     for error in errors do
-        printfn "%s, %s, %s -> Expected %s, Got %s, %s" error.sheet error.cell error.f error.expected error.actual error.errorType
+        printfn "%s, %s, %s -> Expected %s, Got %s, %s, %s" error.sheet error.cell error.f error.expected error.actual error.errorType error.errorMessage
 
 let parseAndTypeCheck filename =
     let namedRanges = XLSXReader.getNamedRanges filename
@@ -77,18 +77,19 @@ let typeCheckingToCSV (filename: string) =
             outFile.WriteLine("file,sheet,cell,function,expected,actual,error_type,error_message")
             errors |> (errorsToCSVFormat filename) |> Seq.iter outFile.WriteLine
     with
-        | ex -> printfn "ERROR: %s" (if ex.Message.Length > 500 then (ex.Message.Substring(0, 500)) + "..." else ex.Message)
+        | ex ->
+            printfn "Error %s: %s" filename ex.Message
     printfn "Finished: %s" filename
 
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\final_dataset\Payroll_Gradebook\CS220-Payroll_4FAULTS_FAULTVERSION1.xlsx"
+    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/enron/benjamin_rogers__1245__test model from Erin.xlsx"
     //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
-    let code = "SUM((B:B,C:C))"
+    let code = "-E92*C76"
     //debugNamedRanges testFile
     //debugParseASTs testFile
-    //createAST code true |> (Printer.run "A1")
+    //createAST code true Map.empty |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)
     //parseAndPrintASTs testFile
     typeCheckAndPrint testFile
@@ -98,8 +99,8 @@ let main argv =
     then printfn "Please provide xlsx files to parse and type check. Flag -p enables AST print mode, -c CSV output mode"
     elif argv.[0].[0] = '-'
     then
-        //let files = List.tail (List.ofArray argv)
-        let files = List.filter(fun filename -> not (XLSXReader.isProtected filename)) (List.tail (List.ofArray argv))
+        let files = List.tail (List.ofArray argv)
+        //let files = List.filter(fun filename -> not (XLSXReader.isProtected filename)) (List.tail (List.ofArray argv))
         if argv.Length < 2
         then printfn "Please provide xlsx files"
         elif argv.[0] = "-p" then List.iter parseAndPrintASTs files

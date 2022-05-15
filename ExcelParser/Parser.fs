@@ -106,7 +106,7 @@ and parseVal expectUnion =
     | tok when tok.tokenType = SheetReference ->
         Leaf (Sheet (tok.value.Trim('!').Trim('''), parseRef tok.value))
     | tok when tok.tokenType = FileReference ->
-        Leaf (Constant (tok.value, SimpleType TypeEnum.General))
+        invalidOp ("External sheet reference: " + tok.value)
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Leaf (Value.Range (1, 1048576, cols.[0], cols.[1]) )

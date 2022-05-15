@@ -74,7 +74,7 @@ type XLFunc =
 and Function =
     { inputs: List<XLType>; output: XLType; minArity: int; repr: String }
     member this.maxArity() = this.inputs.Length
-    member this.inputList() = String.concat "," (List.map (fun (input: XLType) -> input.print() ) this.inputs)
+    member this.inputList(want) = String.concat "," (List.map (fun (input: XLType) -> input.print() ) (List.take want this.inputs))
 
 and SetFunction = { input: XLType; output: XLType; repr: String }
 
