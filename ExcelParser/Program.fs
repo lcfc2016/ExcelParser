@@ -53,7 +53,11 @@ let parseAndTypeCheck filename =
 
 let typeCheckAndPrint filename =
     printfn "%s" filename
-    parseAndTypeCheck filename |> printTypeOutput
+    try
+        parseAndTypeCheck filename |> printTypeOutput
+    with
+        | :? InvalidOperationException as ex ->
+            printfn "Failed to type check %s: %s" filename ex.Message
 
 let errorsToCSVFormat filename (errors: Queue<Error>) =
     Seq.map(fun (error: Error) ->
@@ -84,7 +88,7 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/enron/benjamin_rogers__1245__test model from Erin.xlsx"
+    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/info1/Student006_1FAULTS_FAULTVERSION2.xlsx"
     //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
     let code = "-E92*C76"
     //debugNamedRanges testFile

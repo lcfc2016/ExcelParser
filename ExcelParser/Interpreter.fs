@@ -70,11 +70,14 @@ let checkTypes expected actual =
                     then TypeStatus.PartialHandling
                     else TypeStatus.Mismatch
 
-let rec walkAST (sheet: String) (cell: String) expr : XLType =
+let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLType =
     match expr with
     | Leaf leaf ->
         match leaf with
-        | Reference name -> fetchTypeOrParseTypes sheet name
+        | Reference name ->
+            let loc = sheet + "!" + name
+            if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
+            fetchTypeOrParseTypes sheet name (visited.Add loc)
         | Constant (value, xlType) -> xlType
         | Range (minRow, maxRow, minCol, maxCol) ->
             let activeCells = Map.filter
@@ -87,7 +90,10 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                                         && cell.column <= maxCol
                                     | Failure f -> false)
                                 (cellLookup.GetValueOrDefault(sheet))
-            let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheet name) (Set (Seq.map fst (Map.toSeq activeCells)))
+            let returnedTypes = Set.map (fun name ->
+                let loc = sheet + "!" + name
+                if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
+                fetchTypeOrParseTypes sheet name (visited.Add loc)) (Set (Seq.map fst (Map.toSeq activeCells)))
             if returnedTypes.IsEmpty
             then SimpleType(TypeEnum.General)
             else condenseTypes returnedTypes
@@ -95,7 +101,10 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
             if cellLookup.ContainsKey(sheetRef)
             then
                 match reference with
-                | Reference name -> fetchTypeOrParseTypes sheetRef name
+                | Reference name ->
+                    let loc = sheetRef + "!" + name
+                    if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
+                    fetchTypeOrParseTypes sheetRef name (visited.Add loc)
                 | Range (minRow, maxRow, minCol, maxCol) ->
                     let activeCells = Map.filter
                                         (fun name (cell: ParsedCell) ->
@@ -107,7 +116,10 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                                                 && cell.column <= maxCol
                                             | Failure f -> false)
                                         (cellLookup.GetValueOrDefault(sheetRef))
-                    let returnedTypes = Set.map (fun name -> fetchTypeOrParseTypes sheetRef name) (Set (Seq.map fst (Map.toSeq activeCells)))
+                    let returnedTypes = Set.map (fun name ->
+                        let loc = sheetRef + "!" + name
+                        if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
+                        fetchTypeOrParseTypes sheetRef name (visited.Add loc)) (Set (Seq.map fst (Map.toSeq activeCells)))
                     if returnedTypes.IsEmpty
                     then SimpleType(TypeEnum.General)
                     else condenseTypes returnedTypes
@@ -124,7 +136,7 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                 })
                 SimpleType (TypeEnum.General)
     | Node node ->
-        let getType = walkAST sheet cell
+        let getType = walkAST sheet cell visited
         match node with
         | Unary (unary, arg) ->
             let actual = getType arg
@@ -206,9 +218,9 @@ let rec walkAST (sheet: String) (cell: String) expr : XLType =
                                          | _ -> invalidOp "Unexpected reference in literal array")
                                 (Set.ofList values))
     | Union union ->
-        condenseTypes (Set.map (fun v -> walkAST sheet cell v) (Set.ofList union))
+        condenseTypes (Set.map (fun v -> walkAST sheet cell visited v) (Set.ofList union))
 
-and fetchTypeOrParseTypes sheet cell =
+and fetchTypeOrParseTypes sheet cell (visited: Set<string>) =
     if cellLookup.ContainsKey(sheet)
     then
         if checkedCells.GetValueOrDefault(sheet).ContainsKey(cell)
@@ -217,7 +229,7 @@ and fetchTypeOrParseTypes sheet cell =
             let foundType = (
                 if cellLookup.GetValueOrDefault(sheet).ContainsKey(cell)
                 then
-                    walkAST sheet cell (
+                    walkAST sheet cell visited (
                         match cellLookup.GetValueOrDefault(sheet).GetValueOrDefault(cell) with
                         | Success s -> s.ast
                         | Failure f -> Leaf ( Constant ( f, SimpleType (TypeEnum.General) ) )
@@ -241,7 +253,7 @@ and fetchTypeOrParseTypes sheet cell =
 let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
     Map.map (fun address (cell: ParsedCell) ->
                 match cell with
-                | Success s -> (fetchTypeOrParseTypes sheet address)
+                | Success s -> (fetchTypeOrParseTypes sheet address Set.empty)
                 | Failure f ->
                     errorBuffer.Enqueue({
                         sheet = sheet;
