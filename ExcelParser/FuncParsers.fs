@@ -81,8 +81,8 @@ let parsePostfixOp (token: Token) =
     | _ -> invalidOp ("Parse error at " + token.value)
 
 let lowerAndRemovePrefix (string: String) =
-    (if string.Contains("_xlfn.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(6)
-    elif string.Contains("_xll.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(5)
+    (if string.StartsWith("_xlfn.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(6)
+    elif string.StartsWith("_xll.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(5)
     else string).ToLower()
 
 let parseFunc (token: Token) =
@@ -339,27 +339,35 @@ let parseFunc (token: Token) =
     | "averageif" -> (FixedArity averageIf)
     | "averageifs" -> (FixedArity averageIfs)
     | "beta.dist" -> (FixedArity betaDist)
+    | "betainv"
     | "beta.inv" -> (FixedArity betaInv)
+    | "binomdist"
     | "binom.dist" -> (FixedArity binomDist)
     | "binom.dist.range" -> (FixedArity binomDistRange)
     | "binom.inv" -> (FixedArity binomInv)
     | "chisq.dist" -> (FixedArity chiSqDist)
+    | "chidist"
     | "chisq.dist.rt" -> (FixedArity chiSqDistRt)
     | "chisq.inv" -> (FixedArity chiSqInv)
+    | "chiinv"
     | "chisq.inv.rt" -> (FixedArity chiSqInvRt)
     | "chisq.test" -> (FixedArity chiSqTest)
+    | "confidence"
     | "confidence.norm" -> (FixedArity confidenceNorm)
     | "confidence.t" -> (FixedArity confidenceT)
     | "correl" -> (FixedArity correl)
     | "countblank" -> (FixedArity countBlank)
     | "countif" -> (FixedArity countIf)
     | "countifs" -> (FixedArity countIfs)
+    | "covar"
     | "covariance.p" -> (FixedArity covarianceP)
     | "covariance.s" -> (FixedArity covarianceS)
     | "expon.dist" -> (FixedArity exponDist)
     | "f.dist" -> (FixedArity fDist)
+    | "fdist"
     | "f.dist.rt" -> (FixedArity fDistRt)
     | "f.inv" -> (FixedArity fInv)
+    | "finv"
     | "f.inv.rt" -> (FixedArity fInvRt)
     | "f.test" -> (FixedArity fTest)
     | "fisher" -> (FixedArity fisher)
@@ -384,16 +392,22 @@ let parseFunc (token: Token) =
     | "linest" -> (FixedArity linest)
     | "logest" -> (FixedArity logest)
     | "lognorm.dist" -> (FixedArity logNormDist)
+    | "loginv"
     | "lognorm.inv" -> (FixedArity logNormInv)
     | "maxifs" -> (FixedArity maxIfs)
     | "minifs" -> (FixedArity minIfs)
     | "negbinom.dist" -> (FixedArity negBinomDist)
+    | "normdist"
     | "norm.dist" -> (FixedArity normDist)
+    | "norminv"
     | "norm.inv" -> (FixedArity normInv)
+    | "normsdist"
     | "norm.s.dist" -> (FixedArity normSDist)
+    | "normsinv"
     | "norm.s.inv" -> (FixedArity normSInv)
     | "pearson" -> (FixedArity pearson)
     | "percentile.exc" -> (FixedArity percentileExc)
+    | "percentile"
     | "percentile.inc" -> (FixedArity percentileInc)
     | "percentrank.exc" -> (FixedArity percentrankExc)
     | "percentrank.inc" -> (FixedArity percentrankInc)
@@ -402,8 +416,10 @@ let parseFunc (token: Token) =
     | "phi" -> (FixedArity phi)
     | "poisson.dist" -> (FixedArity poissonDist)
     | "prob" -> (FixedArity prob)
+    | "quartile"
     | "quartile.inc" -> (FixedArity quartileInc)
     | "quartile.exc" -> (FixedArity quartileExc)
+    | "rank"
     | "rank.avg" -> (FixedArity rankAvg)
     | "rank.eq" -> (FixedArity rankEq)
     | "rsq" -> (FixedArity rsq)
@@ -411,9 +427,11 @@ let parseFunc (token: Token) =
     | "small" -> (FixedArity small)
     | "standardize" -> (FixedArity standardize)
     | "steyx" -> (FixedArity steyx)
+    | "tdist"
     | "t.dist" -> (FixedArity tDist)
     | "t.dist.2t" -> (FixedArity tDist2t)
     | "t.dist.rt" -> (FixedArity tDistRt)
+    | "tinv"
     | "t.inv" -> (FixedArity tInv)
     | "t.inv.2t" -> (FixedArity tInv2t)
     | "t.test" -> (FixedArity tTest)
@@ -488,14 +506,18 @@ let parseFunc (token: Token) =
     | "min" -> (Variadic min)
     | "mina" -> (Variadic minA)
     | "mode.mult" -> (Variadic modeMult)
+    | "mode"
     | "mode.sngl" -> (Variadic modeSngl)
     | "skew" -> (Variadic skew)
     | "skew.p" -> (Variadic skewP)
+    | "stdevp"
     | "stdev.p" -> (Variadic stDevP)
+    | "stdev"
     | "stdev.s" -> (Variadic stDevS)
     | "stdeva" -> (Variadic stDevA)
     | "stdevpa" -> (Variadic stDevPA)
     | "var.p" -> (Variadic varP)
+    | "var"
     | "var.s" -> (Variadic varS)
     | "vara" -> (Variadic varA)
     | "varpa" -> (Variadic varPA)

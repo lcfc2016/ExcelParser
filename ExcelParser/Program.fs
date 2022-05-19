@@ -88,15 +88,15 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/info1/Student006_1FAULTS_FAULTVERSION2.xlsx"
-    //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
+    //let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/info1/Student006_1FAULTS_FAULTVERSION2.xlsx"
+    let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
     let code = "-E92*C76"
     //debugNamedRanges testFile
     //debugParseASTs testFile
     //createAST code true Map.empty |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)
-    //parseAndPrintASTs testFile
-    typeCheckAndPrint testFile
+    parseAndPrintASTs testFile
+    //typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
     if argv.Length < 1

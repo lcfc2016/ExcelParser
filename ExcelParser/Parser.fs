@@ -137,8 +137,11 @@ and parseList () =
     let args = [parseExpr 0 false]
     match tokens.Peek().tokenType with
     | Comma ->
-        ignore (tokens.Dequeue())
-        args @ parseList ()
+        while tokens.Peek().tokenType = Comma do
+            ignore (tokens.Dequeue())
+        match tokens.Peek().tokenType with
+        | RightBracket -> args
+        | _ -> args @ parseList ()
     | RightBracket -> args
     | _ -> invalidOp ("Error at " + tokens.Peek().value + ", " + tokens.Peek().value)
 

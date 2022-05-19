@@ -116,10 +116,10 @@ let mIrr = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric;
 let nominal = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "NOMINAL"}
 let nPer = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "NPER"}
 let nPv = { inputs = [ for i in 1..255 -> ignore i; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "NPV"}
-let oddFPrice = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDFPRICE"}
-let oddFYield = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDFYIELD"}
-let oddLPrice = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDLPRICE"}
-let oddLYield = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDLYIELD"}
+let oddFPrice = { inputs = [ for i in 1..9 -> ignore i; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 8; repr = "ODDFPRICE"}
+let oddFYield = { inputs = [ for i in 1..9 -> ignore i; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 8; repr = "ODDFYIELD"}
+let oddLPrice = { inputs = [ for i in 1..8 -> ignore i; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDLPRICE"}
+let oddLYield = { inputs = [ for i in 1..8 -> ignore i; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 7; repr = "ODDLYIELD"}
 let pDuration = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "PDURATION"}
 let pmt = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "PMT"}
 let pPmt = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "PPMT"}
@@ -173,7 +173,7 @@ let true' = { inputs = []; output = SimpleType TypeEnum.Bool; minArity = 0; repr
 
 // Lookup and Reference
 let address = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 2; repr = "ADDRESS" }
-let column = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COLUMN" }
+let column = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 0; repr = "COLUMN" }
 let columns = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COLUMNS" }
 let filter = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Bool; SimpleType TypeEnum.General]; output = SimpleType TypeEnum.General; minArity = 2; repr = "FILTER" }
 let formulaText = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Bool; minArity = 1; repr = "FORMULATEXT" }
@@ -187,7 +187,7 @@ let indirect = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Bool]; o
 // let lookup = { inputs = []; output = (); repr = "LOOKUP" }
 let match' = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Error])); minArity = 2; repr = "MATCH" }
 let offset = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.General; minArity = 3; repr = "OFFSET" }
-let row = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ROW" }
+let row = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 0; repr = "ROW" }
 let rows = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ROWS" }
 // Not parseable within this app's framework, refers to a COM process and to a server
 // let rtd = { inputs = []; output = (); repr = "RTD" }
@@ -213,7 +213,7 @@ let arabic = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.
 let asin = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ASIN" }
 let asinh = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ASINH" }
 let atan = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ATAN" }
-let atan2 = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ATAN2" }
+let atan2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "ATAN2" }
 let atanh = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ATANH" }
 let base' = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 2; repr = "BASE" }
 let ceiling = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "CEILING" }
@@ -245,7 +245,7 @@ let log = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric];
 let log10 = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LOG10" }
 let mDeterm = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MDETERM" }
 let mInverse = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MINVERSE" }
-let mMult = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MMULT" }
+let mMult = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "MMULT" }
 let mod' = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MOD" }
 let mRound = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "MROUND" }
 let mUnit = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "MUNIT" }
@@ -278,7 +278,7 @@ let sumX2Py2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Nume
 let sumXMy2 = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "SUMXMY2" }
 let tan = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "TAN" }
 let tanh = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "TANH" }
-let trunc = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "TRUNC" }
+let trunc = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "TRUNC" }
 
 // Statistical
 let averageIf = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "AVERAGEIF"}
