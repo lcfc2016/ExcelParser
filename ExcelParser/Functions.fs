@@ -143,7 +143,7 @@ let yieldDisc = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Num
 let yieldMat = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 5; repr = "YIELDMAT"}
 
 // Information - DONE
-let cell = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.General]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); minArity = 2; repr = "CELL"}
+let cell = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.General]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); minArity = 1; repr = "CELL"}
 let errorType = { inputs = [SimpleType TypeEnum.Error]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ERROR.TYPE"}
 let info = { inputs = [SimpleType TypeEnum.Str]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); minArity = 1; repr = "INFO"}
 let isBlank = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Bool; minArity = 1; repr = "ISBLANK"}
@@ -375,7 +375,7 @@ let char = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnu
 let clean = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "CLEAN" }
 let code = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "CODE" }
 let dbcs = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "DBCS" }
-let dollar = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "DOLLAR" }
+let dollar = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "DOLLAR" }
 let exact = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Bool; minArity = 2; repr = "EXACT" }
 let find = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Str; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "FIND" }
 let findB = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Str; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "FINDB" }

@@ -71,7 +71,7 @@ and parseVal expectUnion =
         let f = parseFunc tok
         match f with
         | FixedArity f -> 
-            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList f.repr else []
             expect RightBracket
             if f.minArity <= args.Length && args.Length <= f.maxArity()
                 then Node ( Func (f, args))
@@ -86,19 +86,19 @@ and parseVal expectUnion =
             then Node ( SetFunc (f, args))
             else invalidOp ("No arguments provided to function: " + f.repr)
         | Generic f ->
-            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList f.repr else []
             expect RightBracket
             if f.minimumClauses() <= args.Length && args.Length <= f.maximumClauses()
             then Node ( GenericFunc (f, args))
             else invalidOp (f.repr + " expects between " + f.minimumClauses().ToString() + " and " + f.maximumClauses().ToString() + " arguments, got " + args.Length.ToString())
         | Switch ->
-            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList "SWITCH" else []
             expect RightBracket
             if 3 <= args.Length && args.Length <= 253
             then Node ( SwitchFunc args )
             else invalidOp ("SWITCH expects between 3 and 253 arguments, got " + args.Length.ToString())
         | Ifs ->
-            let args = if tokens.Peek().tokenType <> RightBracket then parseList () else []
+            let args = if tokens.Peek().tokenType <> RightBracket then parseList "IFS" else []
             expect RightBracket
             if 2 <= args.Length && args.Length <= 254 && (args.Length % 2 = 0)
             then Node ( IfsFunc args )
@@ -133,7 +133,7 @@ and parseLiteralArray () =
     | [] -> invalidOp ("Empty set near " + tokens.Peek().value)
     | _ -> result
 
-and parseList () =
+and parseList (fName: string) =
     let args = [parseExpr 0 false]
     match tokens.Peek().tokenType with
     | Comma ->
@@ -141,19 +141,31 @@ and parseList () =
             ignore (tokens.Dequeue())
         match tokens.Peek().tokenType with
         | RightBracket -> args
-        | _ -> args @ parseList ()
+        | _ -> args @ parseList fName
     | RightBracket -> args
-    | _ -> invalidOp ("Error at " + tokens.Peek().value + ", " + tokens.Peek().value)
+    | _ -> invalidOp ("Error in parameters of " + fName + ", at: " + tokens.Peek().value)
 
 and parseRef sheetName =
     match tokens.Dequeue() with
     | tok when tok.tokenType = CellReference ->
-        Reference (tok.value.Replace("$", ""))
+        match tokens.Peek().tokenType with
+        | Colon ->
+            expect Colon
+            match tokens.Dequeue() with
+            | s when s.tokenType = SheetReference && String.Equals(sheetName, s.value, StringComparison.OrdinalIgnoreCase) ->
+                match tokens.Dequeue() with
+                | t2 when t2.tokenType = CellReference ->
+                    let range = tok.value + ":" + t2.value
+                    let elements = Regex.Match(range, @"\$?([a-z]{1,3})\$?(\d+):\$?([a-z]{1,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups
+                    Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
+                | t2 -> invalidOp ("Invalid cross-sheet range at: " + tok.value + ":" + s.value + t2.value)
+            | s -> invalidOp ("Unparsed cross-sheet range at: " + tok.value + ":" + s.value)
+        | _ -> Reference (tok.value.Replace("$", ""))
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Value.Range (1, 1048576, cols.[0], cols.[1])
     | tok when tok.tokenType = CellRange ->
-        let elements = Regex.Match(tok.value, @"\$?([a-z]{0,3})\$?(\d+):\$?([a-z]{0,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups;
+        let elements = Regex.Match(tok.value, @"\$?([a-z]{1,3})\$?(\d+):\$?([a-z]{1,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups
         Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
     | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName)
 

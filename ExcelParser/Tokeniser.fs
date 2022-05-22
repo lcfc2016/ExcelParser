@@ -12,8 +12,8 @@ let numericTokenExpr = {regex = Regex(@"^[-+]?\d+(?:\.\d+)?"); tokType = Number}
 let textTokenExpr = {regex = Regex(@"^"".*?"""); tokType = Text}
 let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b(?!\()", RegexOptions.IgnoreCase); tokType = Boolean}
 let errorTokenExpr = {regex = Regex(@"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)", RegexOptions.IgnoreCase); tokType = XLError}
-let cellRangeExpr = {regex = Regex(@"^\$?[a-z]{0,3}\$?\d+:\$?[a-z]{0,3}\$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
-let colRangeExpr = {regex = Regex(@"^\$?[a-z]{0,3}:\$?[a-z]{0,3}", RegexOptions.IgnoreCase); tokType = ColRange};
+let cellRangeExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?\d+:\$?[a-z]{1,3}\$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
+let colRangeExpr = {regex = Regex(@"^\$?[a-z]{1,3}:\$?[a-z]{1,3}", RegexOptions.IgnoreCase); tokType = ColRange};
 let cellReferenceExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?[1-9]\d*", RegexOptions.IgnoreCase); tokType = CellReference};
 
 let tokenExprs = [
@@ -49,6 +49,7 @@ let tokenExprs = [
     cellRangeExpr;
     colRangeExpr;
     cellReferenceExpr;
+    {regex = Regex(@"^:"); tokType = Colon};
     {regex = Regex(@"^[a-z_\\][\w\.?]*", RegexOptions.IgnoreCase); tokType = NamedRange}
 ]
 
