@@ -71,30 +71,30 @@ let rec generateOutputName (filename: string) attempt =
     else output
 
 let typeCheckingToCSV (filename: string) =
-    printfn "Starting: %s" filename
+    printf "Starting: %s, " filename
     try
         let errors = parseAndTypeCheck filename
         if errors.Count > 0
         then
-            printfn "Errors found: %s" filename
+            printfn "errors"
             use outFile = new StreamWriter(generateOutputName filename 0)
             outFile.WriteLine("file,sheet,cell,function,expected,actual,error_type,error_message")
             errors |> (errorsToCSVFormat filename) |> Seq.iter outFile.WriteLine
+        else
+            printfn "finished"
     with
         | ex ->
-            printfn "Error %s: %s" filename ex.Message
-    printfn "Finished: %s" filename
+            printfn "failed %s: %s" filename ex.Message
 
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    //let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/info1/Student006_1FAULTS_FAULTVERSION2.xlsx"
+    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/Info1/Student079_1FAULTS_FAULTVERSION1.xlsx"
     //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
-    let testFile = "C:/Users/bjs73/Documents/MSc/IRP/final_dataset/euses/0315Publish.xlsx"
-    let code = "VLOOKUP(B3,Spring2004!$U$25:Spring2004!$Y$53,5,FALSE())"
+    let code = "#N/A N.A."
     //debugNamedRanges testFile
     //debugParseASTs testFile
-    //createAST code true Map.empty |> (Printer.run "A1")
+    //createAST code false Map.empty |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)
     //parseAndPrintASTs testFile
     typeCheckAndPrint testFile

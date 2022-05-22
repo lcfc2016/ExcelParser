@@ -7,15 +7,19 @@ open System.Text.RegularExpressions
 open Types
 
 let getNamedRanges (filename: String) =
-    use workbook = new XLWorkbook(filename)
-    let validRanges =
-        List.filter (fun (range: IXLNamedRange) ->
-                        let sheetNames = Set.ofList [ for subRange in range.Ranges -> subRange.Worksheet.Name ]
-                        sheetNames.Count = 1 )
-                        [ for range in workbook.NamedRanges.ValidNamedRanges() -> range ]
-    Map [ for range in validRanges ->
-            let sheet = [ for subRange in range.Ranges -> subRange.Worksheet.Name ].Head
-            ( range.Name.ToLower(), { sheet = sheet + "!"; ranges = [ for subRange in range.Ranges -> subRange.RangeAddress.ToString() ] } ) ]
+    try
+        use workbook = new XLWorkbook(filename)
+        let validRanges =
+            List.filter (fun (range: IXLNamedRange) ->
+                            let sheetNames = Set.ofList [ for subRange in range.Ranges -> subRange.Worksheet.Name ]
+                            sheetNames.Count = 1 )
+                            [ for range in workbook.NamedRanges.ValidNamedRanges() -> range ]
+        Map [ for range in validRanges ->
+                let sheet = [ for subRange in range.Ranges -> subRange.Worksheet.Name ].Head
+                ( range.Name.ToLower(), { sheet = sheet + "!"; ranges = [ for subRange in range.Ranges -> subRange.RangeAddress.ToString() ] } ) ]
+    with
+        | :? IndexOutOfRangeException as ex -> invalidOp("ClosedXML named range read error")
+        | ex -> invalidOp("Error occurred reading named ranges")
 
 let readSheet (xlSheet: IXLWorksheet) =
     [ for cell in xlSheet.CellsUsed() -> {
@@ -34,8 +38,11 @@ let normaliseSheetName (sheetName: String) =
     // else sheetName
 
 let xlsxReader (filename: string) =
-    use workbook = new XLWorkbook(filename)
-    Map [ for sheet in workbook.Worksheets -> (normaliseSheetName sheet.Name, readSheet sheet) ]
+    try
+        use workbook = new XLWorkbook(filename)
+        Map [ for sheet in workbook.Worksheets -> (normaliseSheetName sheet.Name, readSheet sheet) ]
+    with
+        | ex -> invalidOp("Failed to read " + filename)
 
 let isProtected (filename: string) =
     use workbook = new XLWorkbook(filename)

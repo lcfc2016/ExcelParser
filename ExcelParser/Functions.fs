@@ -168,8 +168,6 @@ let type' = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEn
 let false' = { inputs = []; output = SimpleType TypeEnum.Bool; minArity = 0; repr = "FALSE" }
 let not = { inputs = [SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.Bool; minArity = 1; repr = "NOT" }
 let true' = { inputs = []; output = SimpleType TypeEnum.Bool; minArity = 0; repr = "TRUE" }
-// TO DO
-// IFS and SWITCH
 
 // Lookup and Reference
 let address = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Str; minArity = 2; repr = "ADDRESS" }
@@ -177,14 +175,13 @@ let column = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeE
 let columns = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "COLUMNS" }
 let filter = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Bool; SimpleType TypeEnum.General]; output = SimpleType TypeEnum.General; minArity = 2; repr = "FILTER" }
 let formulaText = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Bool; minArity = 1; repr = "FORMULATEXT" }
-// let getPivotData = { inputs = []; output = (); repr = "GETPIVOTDATA" } Not convinced this is parseable
+// Not parseable due to need for pivot table
+// let getPivotData = { inputs = []; output = (); repr = "GETPIVOTDATA" }
 let hlookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.General; minArity = 3; repr = "HLOOKUP" }
 let hyperlink = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Str; minArity = 1; repr = "HYPERLINK" }
 let index = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.General; minArity = 2; repr = "INDEX" }
-// If the below is to be made stricter it would likely need handling as a specific case, has a very odd arg pattern
 let indirect = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.General; minArity = 1; repr = "INDIRECT" }
-// Another one for a daft argument pattern, similar to aggregate it has two forms
-// let lookup = { inputs = []; output = (); repr = "LOOKUP" }
+let lookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.General]; output = SimpleType TypeEnum.General; minArity = 2; repr = "LOOKUP" }
 let match' = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Error])); minArity = 2; repr = "MATCH" }
 let offset = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.General; minArity = 3; repr = "OFFSET" }
 let row = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.Numeric; minArity = 0; repr = "ROW" }
@@ -192,15 +189,12 @@ let rows = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnu
 // Not parseable within this app's framework, refers to a COM process and to a server
 // let rtd = { inputs = []; output = (); repr = "RTD" }
 let sort = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.General; minArity = 1; repr = "SORT" }
-// sortBy has a fairly complex argument pattern, similar to indirect, this would potentially need handling as a special case
-// let sortBy = { inputs = []; output = (); repr = "SORTBY" }
+let sortBy = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric ] @ List.concat [ for i in 1..127 -> ignore i; [SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric] ]; output = SimpleType TypeEnum.General; minArity = 2; repr = "SORTBY" }
 let transpose = { inputs = [SimpleType TypeEnum.General]; output = SimpleType TypeEnum.General; minArity = 1; repr = "TRANSPOSE" }
 let unique = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Bool; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.General; minArity = 1; repr = "UNIQUE" }
 let vlookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Bool]; output = SimpleType TypeEnum.General; minArity = 3; repr = "VLOOKUP" }
-// Couple of odd Office365 functions, ignoring for now
-// let xlookup = { inputs = []; output = (); repr = "XLOOKUP" }
-// let xmatch = { inputs = []; output = (); repr = "XMATCH" }
-
+let xlookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.General; minArity = 3; repr = "XLOOKUP" }
+let xmatch = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "XMATCH" }
 
 // Math and Trig - Add aggregate to func parser
 let abs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ABS" }
@@ -239,7 +233,6 @@ let gcd = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric];
 let int' = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "INT" }
 let isoCeiling = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ISO.CEILING" }
 let lcm = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LCM" }
-// let let' = unimplemented for now, may stay that way as will require the addition of assignment (have got code to do this in the Basic Interpreter proj)
 let ln = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LN" }
 let log = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LOG" }
 let log10 = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "LOG10" }

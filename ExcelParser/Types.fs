@@ -29,6 +29,7 @@ type TokenType =
     | XLError
     // Misc
     //| Let
+    | Intersection
     | Percentage
     | FileReference
     | SheetReference

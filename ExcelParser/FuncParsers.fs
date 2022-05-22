@@ -81,7 +81,8 @@ let parsePostfixOp (token: Token) =
     | _ -> invalidOp ("Parse error at " + token.value)
 
 let lowerAndRemovePrefix (string: String) =
-    (if string.StartsWith("_xlfn.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(6)
+    (if string.StartsWith("_xludf.", StringComparison.CurrentCultureIgnoreCase) then invalidOp("User-defined functions not supported: " + string)
+    elif string.StartsWith("_xlfn.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(6)
     elif string.StartsWith("_xll.", StringComparison.CurrentCultureIgnoreCase) then string.Substring(5)
     else string).ToLower()
 
@@ -258,9 +259,12 @@ let parseFunc (token: Token) =
     | "row" -> (FixedArity row)
     | "rows" -> (FixedArity rows)
     | "sort" -> (FixedArity sort)
+    | "sortby" -> (FixedArity sortBy)
     | "transpose" -> (FixedArity transpose)
     | "unique" -> (FixedArity unique)
     | "vlookup" -> (FixedArity vlookup)
+    | "xlookup" -> (FixedArity xlookup)
+    | "xmatch" -> (FixedArity xmatch)
     | "abs" -> (FixedArity abs)
     | "aggregate" -> (FixedArity aggregate)
     | "acos" -> (FixedArity acos)

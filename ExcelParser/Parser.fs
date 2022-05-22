@@ -7,6 +7,8 @@ open System.Collections
 open System.Text.RegularExpressions
 
 
+let rangePattern = @"^\$?([a-z]{0,3})\$?(\d+)(?::\$?[a-z]{0,3}\$?\d+)*:\$?([a-z]{0,3})\$?(\d+)$"
+
 let mutable tokens = new Generic.Queue<Token>()
 
 let expect tokenType =
@@ -104,15 +106,18 @@ and parseVal expectUnion =
             then Node ( IfsFunc args )
             else invalidOp ("IFS expects between 2 and 254 arguments, got " + args.Length.ToString())
     | tok when tok.tokenType = SheetReference ->
-        Leaf (Sheet (tok.value.Trim('!').Trim('''), parseRef tok.value))
-    | tok when tok.tokenType = FileReference ->
-        invalidOp ("External sheet reference: " + tok.value)
+        Leaf (Sheet (tok.value.Trim('!').Trim(''').Replace("''", "'"), parseRef tok.value))
     | tok when tok.tokenType = ColRange ->
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Leaf (Value.Range (1, 1048576, cols.[0], cols.[1]) )
     | tok when tok.tokenType = CellRange ->
-        let elements = Regex.Match(tok.value, @"\$?([a-z]{0,3})\$?(\d+):\$?([a-z]{0,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups;
+        let elements = Regex.Match(tok.value, rangePattern, RegexOptions.IgnoreCase).Groups;
         Leaf (Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value) )
+    // Error conditions and unimplemented features
+    | tok when tok.tokenType = FileReference ->
+        invalidOp ("External file reference: " + tok.value)
+    | tok when tok.tokenType = Intersection ->
+        invalidOp ("Implicit intersection operator is not yet supported, detected at: " + tok.value + ", " + tokens.Peek().value)
     | value -> invalidOp ("Error at " + value.value + ", " + tokens.Peek().value)
 
 and parseLiteralArray () =
@@ -156,7 +161,7 @@ and parseRef sheetName =
                 match tokens.Dequeue() with
                 | t2 when t2.tokenType = CellReference ->
                     let range = tok.value + ":" + t2.value
-                    let elements = Regex.Match(range, @"\$?([a-z]{1,3})\$?(\d+):\$?([a-z]{1,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups
+                    let elements = Regex.Match(range, rangePattern, RegexOptions.IgnoreCase).Groups
                     Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
                 | t2 -> invalidOp ("Invalid cross-sheet range at: " + tok.value + ":" + s.value + t2.value)
             | s -> invalidOp ("Unparsed cross-sheet range at: " + tok.value + ":" + s.value)
@@ -165,9 +170,9 @@ and parseRef sheetName =
         let cols = [ for cell in tok.value.Split(':') -> cell.Replace("$", "") ]
         Value.Range (1, 1048576, cols.[0], cols.[1])
     | tok when tok.tokenType = CellRange ->
-        let elements = Regex.Match(tok.value, @"\$?([a-z]{1,3})\$?(\d+):\$?([a-z]{1,3})\$?(\d+)", RegexOptions.IgnoreCase).Groups
+        let elements = Regex.Match(tok.value, rangePattern, RegexOptions.IgnoreCase).Groups
         Value.Range (int32(elements.Item(2).Value), int32(elements.Item(4).Value), elements.Item(1).Value, elements.Item(3).Value)
-    | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName)
+    | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName.TrimEnd('!'))
 
 let parse (tokenList: List<Token>) =
     tokens <- (Generic.Queue tokenList)

@@ -8,13 +8,13 @@ open Types
 [<Struct>]
 type TokenExprs = { regex: Regex; tokType: TokenType }
 
-let numericTokenExpr = {regex = Regex(@"^[-+]?\d+(?:\.\d+)?"); tokType = Number}
-let textTokenExpr = {regex = Regex(@"^"".*?"""); tokType = Text}
-let boolTokenExpr = {regex = Regex(@"^(?:true|false)\b(?!\()", RegexOptions.IgnoreCase); tokType = Boolean}
-let errorTokenExpr = {regex = Regex(@"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)", RegexOptions.IgnoreCase); tokType = XLError}
-let cellRangeExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?\d+:\$?[a-z]{1,3}\$?\d+", RegexOptions.IgnoreCase); tokType = CellRange};
+let numericPattern = @"^[-+]?\d+(?:\.\d+)?"
+let textPattern = @"^"".*?"""
+let boolPattern = @"^(?:true|false)\b(?!\()"
+let errorPattern = @"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)"
+let cellRangeExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?\d+(?::\$?[a-z]{1,3}\$?\d+)+", RegexOptions.IgnoreCase); tokType = CellRange};
 let colRangeExpr = {regex = Regex(@"^\$?[a-z]{1,3}:\$?[a-z]{1,3}", RegexOptions.IgnoreCase); tokType = ColRange};
-let cellReferenceExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?[1-9]\d*", RegexOptions.IgnoreCase); tokType = CellReference};
+let cellReferenceExpr = {regex = Regex(@"^\$?[a-z]{1,3}\$?[1-9]\d*(?!\w)", RegexOptions.IgnoreCase); tokType = CellReference};
 
 let tokenExprs = [
     // Delimiters
@@ -34,17 +34,19 @@ let tokenExprs = [
     {regex = Regex(@"^[*/]"); tokType = Factor};
     {regex = Regex(@"^\^"); tokType = Expt};
     {regex = Regex(@"^%"); tokType = Percentage};
+    // Implicit intersection
+    {regex = Regex(@"^@\w+"); tokType = Intersection};
     // Out of sheet reference
     {regex = Regex(@"^(?:'.*?\[.*?\][^\\/?*\[\]]+?'|\[.*?\][^-'*\[\]:/?();{}#""=<>&+^%,\s]+)!"); tokType = FileReference};
     {regex = Regex(@"^(?:'[^\\/?*\[\]]+?'!|[^-'*\[\]:/?();{}#""=<>&+^%,\s]+!)"); tokType = SheetReference};
     // Literals
-    numericTokenExpr;
-    textTokenExpr;
-    boolTokenExpr;
-    errorTokenExpr;
+    {regex = Regex(numericPattern); tokType = Number};
+    {regex = Regex(textPattern); tokType = Text};
+    {regex = Regex(boolPattern, RegexOptions.IgnoreCase); tokType = Boolean};
+    {regex = Regex(errorPattern, RegexOptions.IgnoreCase); tokType = XLError};
     // Functions
-    {regex = Regex(@"^(?:_xlfn\.|_xll\.)?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
-    // Misc
+    {regex = Regex(@"^_?[\w.]+(?=\()", RegexOptions.IgnoreCase); tokType = FuncToken};
+    // References
     //{regex = Regex(@"^let"); tokType = Let};
     cellRangeExpr;
     colRangeExpr;
@@ -74,7 +76,7 @@ let tokeniseRange range =
     | r when cellRangeExpr.regex.IsMatch(range) -> cellRangeExpr.tokType
     | col when colRangeExpr.regex.IsMatch(range) -> colRangeExpr.tokType
     | cell when cellReferenceExpr.regex.IsMatch(range) -> cellReferenceExpr.tokType
-    | _ -> invalidOp ("Attempt to resolve range for failed: " + range)
+    | _ -> invalidOp ("Attempt to resolve range failed for: " + range)
 
 let processNamedRange (namedRange: string) (namedRanges: Map<string, ParsedNamedRange>) =
     let lowered = namedRange.ToLower()
@@ -102,12 +104,15 @@ let run (str: string) (isFormula: bool) (namedRanges: Map<string, ParsedNamedRan
                 | _ -> tokens.Enqueue(token)
         ) rawTokens
         [ for token in tokens -> token ]
-    else [{
-            value = str;
-            tokenType = match str with
-                        | num when numericTokenExpr.regex.IsMatch(num) -> Number
-                        | bool when boolTokenExpr.regex.IsMatch(bool) -> Boolean
-                        | error when errorTokenExpr.regex.IsMatch(error) -> Error
+    else
+        let trimmed = str.Trim()
+        [{
+            value = trimmed;
+            tokenType = match trimmed with
+                        // Add date and time literal handling to number, all matches should be of entire cell or revert to text
+                        | num when Regex.IsMatch(num, numericPattern + @"$|^\d\d/\d\d/\d\d\d\d(?:\s+\d\d:\d\d:\d\d)?$") -> Number
+                        | bool when Regex.IsMatch(bool, boolPattern + @"$", RegexOptions.IgnoreCase) -> Boolean
+                        | error when Regex.IsMatch(error, errorPattern + @"$", RegexOptions.IgnoreCase) -> Error
                         | _ -> Text
         };
         endToken
