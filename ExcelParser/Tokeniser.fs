@@ -8,7 +8,7 @@ open Types
 [<Struct>]
 type TokenExprs = { regex: Regex; tokType: TokenType }
 
-let numericPattern = @"^[-+]?\d+(?:\.\d+)?"
+let numericPattern = @"^[-+]?\d+(?:\.\d+)?(?:[Ee][-+]?[0-9]+)?"
 let textPattern = @"^"".*?"""
 let boolPattern = @"^(?:true|false)\b(?!\()"
 let errorPattern = @"^#(?:null!|div/0!|value!|ref!|name?|num!|n/a|getting_data|spill!|connect!|blocked!|unknown!|field!|calc!)"
@@ -110,6 +110,7 @@ let run (str: string) (isFormula: bool) (namedRanges: Map<string, ParsedNamedRan
             value = trimmed;
             tokenType = match trimmed with
                         // Add date and time literal handling to number, all matches should be of entire cell or revert to text
+                        | g when String.IsNullOrEmpty trimmed -> General
                         | num when Regex.IsMatch(num, numericPattern + @"$|^\d\d/\d\d/\d\d\d\d(?:\s+\d\d:\d\d:\d\d)?$") -> Number
                         | bool when Regex.IsMatch(bool, boolPattern + @"$", RegexOptions.IgnoreCase) -> Boolean
                         | error when Regex.IsMatch(error, errorPattern + @"$", RegexOptions.IgnoreCase) -> Error

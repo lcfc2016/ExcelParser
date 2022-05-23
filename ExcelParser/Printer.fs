@@ -12,7 +12,7 @@ let rec printParsedCell expr indentLevel =
         match leaf with
         | Reference name ->
             printfn "%s%s" indent name
-        | Constant (value, xlType) -> printfn "%s%s" indent value
+        | Constant (value, xlType) -> printfn "%s%s (%s)" indent value (xlType.print())
         | Range (minRow, maxRow, minCol, maxCol) -> printfn "%s%s%d:%s%d" indent minCol minRow maxCol maxRow
         | Sheet (sheet, reference) ->
             printfn "%s%s -> %s" indent sheet (match reference with
@@ -20,7 +20,6 @@ let rec printParsedCell expr indentLevel =
                                               | Constant (value, xlType) -> value
                                               | Range(minRow, maxRow, minCol, maxCol) ->
                                                 sprintf "%s%d:%s%d" minCol minRow maxCol maxRow
-                                                // String.Join("", minCol, (minRow.ToString()), maxCol, (maxRow.ToString()))
                                               | _ -> invalidOp "Invalid sheet reference chaining detected")
     | Node node ->
         match node with
@@ -47,7 +46,7 @@ let rec printParsedCell expr indentLevel =
             printfn "%sIFS" indent
             Seq.iter (fun a -> printParsedCell a (indentLevel + 1)) args
     | Values values ->
-        printfn "{%s%s}" indent (
+        printfn "%s{%s}" indent (
             String.Join(", ", List.map (fun v -> match v with
                                                  | Constant (value, xlType) -> value
                                                  | _ -> invalidOp "Unexpected reference in literal array")

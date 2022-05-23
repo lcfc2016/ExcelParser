@@ -89,15 +89,15 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/Info1/Student079_1FAULTS_FAULTVERSION1.xlsx"
+    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/euses/EDPAnnex1.xlsx"
     //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
-    let code = "#N/A N.A."
+    let code = @"XIRR({-10000;2750;4290;3250;2742},{""1998/1/1"";""1998/1/3"";""1998/10/30"";""1999/2/15"";""1999/2/4""},0.01)"
     //debugNamedRanges testFile
-    //debugParseASTs testFile
-    //createAST code false Map.empty |> (Printer.run "A1")
+    //debugParseASTs testFile "G13"
+    createAST code true (XLSXReader.getNamedRanges testFile) |> (Printer.run "A1")
     //ignore (XLSXReader.testXLRead testFile)
-    //parseAndPrintASTs testFile
-    typeCheckAndPrint testFile
+    ////parseAndPrintASTs testFile
+    //typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
     if argv.Length < 1

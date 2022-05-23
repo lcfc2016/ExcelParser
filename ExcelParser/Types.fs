@@ -23,6 +23,7 @@ type TokenType =
     | Factor
     | Expt
     // Literals
+    | General
     | Number
     | Text
     | Boolean

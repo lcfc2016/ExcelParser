@@ -20,6 +20,7 @@ let expect tokenType =
 
 let isLiteral (token: Token) =
     match token.tokenType with
+    | General
     | Boolean
     | Number
     | Text
@@ -27,10 +28,11 @@ let isLiteral (token: Token) =
     | _ -> false
 
 let parseLiteral (token: Token) =
-    // Check if token string is double-quoted, if so remove quotes
-    let value = if token.value = @"""""" then token.value else token.value.Trim('"')
+    // Remove quotes unless literal empty string
+    let value = if Regex.IsMatch(token.value, @"^""\s*""$") then token.value else token.value.Trim('"')
     Constant ( value,
         match token.tokenType with
+        | General ->    SimpleType (TypeEnum.General)
         | Text ->       SimpleType (TypeEnum.Str)
         | Number ->     SimpleType (TypeEnum.Numeric)
         | Boolean ->    SimpleType (TypeEnum.Bool)
@@ -123,20 +125,30 @@ and parseVal expectUnion =
 and parseLiteralArray () =
     let rec recur rows current =
         match tokens.Dequeue() with
+        | tok when isUnary tok ->
+            match tok.tokenType with
+            | Minus
+            | Addition ->
+                match tokens.Dequeue() with
+                | num when num.tokenType = Number -> recur rows current @ [parseLiteral { value = tok.value + num.value; tokenType = Number }]
+                | t -> invalidOp("Unparsed literal in array: " + tok.value + ", " + t.value)
+            | _ -> invalidOp("Unexpected unary operator in literal array: " + tok.value)
         | tok when isLiteral tok ->
-            recur rows current @ [parseLiteral (tokens.Dequeue())]
+            recur rows current @ [parseLiteral tok]
         | tok when tok.tokenType = Comma ->
             recur rows current
+        | tok when tok.tokenType = Semicolon ->
+            recur (rows @ [current]) []
         | tok when tok.tokenType = RightBrace ->
             let dimension = List.length current
             if List.forall (fun lst -> List.length lst = dimension) rows
-            then List.concat (rows @ current)
+            then List.concat (rows @ [current])
             else invalidOp ("2D array with uneven dimensions")
         | tok -> invalidOp ("Error at " + tok.value + ", " + tokens.Peek().value)
     let result = recur [] []
     match result with
     | [] -> invalidOp ("Empty set near " + tokens.Peek().value)
-    | _ -> result
+    | _ -> List.rev result
 
 and parseList (fName: string) =
     let args = [parseExpr 0 false]
