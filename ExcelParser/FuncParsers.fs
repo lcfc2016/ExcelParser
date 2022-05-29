@@ -254,6 +254,7 @@ let parseFunc (token: Token) =
     | "hyperlink" -> (FixedArity hyperlink)
     | "index" -> (FixedArity index)
     | "indirect" -> (FixedArity indirect)
+    | "lookup" -> (FixedArity lookup)
     | "match" -> (FixedArity match')
     | "offset" -> (FixedArity offset)
     | "row" -> (FixedArity row)
