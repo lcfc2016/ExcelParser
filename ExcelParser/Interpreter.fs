@@ -13,13 +13,13 @@ let mutable errorBuffer = new Queue<Error>()
 let typeJoin (types: list<XLType>) =
     String.concat "," (List.map (fun (input: XLType) -> input.print()) types)
 
-let condenseTypes (types: Set<XLType>) =
+let condenseTypes (types: Set<XLType>) reduceToGeneral =
     let convertSimpleTypesToSets x =
         match x with
         | SimpleType x -> Set.empty.Add(x)
         | ComplexType x -> x
     let typeSet = (Set.unionMany (Set.map convertSimpleTypesToSets types))
-    if Set.contains TypeEnum.General typeSet
+    if Set.contains TypeEnum.General typeSet && reduceToGeneral
     then SimpleType (TypeEnum.General)
     else if Set.count typeSet > 1
          then ComplexType (typeSet)
@@ -96,7 +96,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                 fetchTypeOrParseTypes sheet name (visited.Add loc)) (Set (Seq.map fst (Map.toSeq activeCells)))
             if returnedTypes.IsEmpty
             then SimpleType(TypeEnum.General)
-            else condenseTypes returnedTypes
+            else condenseTypes returnedTypes true
         | Sheet (sheetRef, reference) ->
             if cellLookup.ContainsKey(sheetRef)
             then
@@ -122,7 +122,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                         fetchTypeOrParseTypes sheetRef name (visited.Add loc)) (Set (Seq.map fst (Map.toSeq activeCells)))
                     if returnedTypes.IsEmpty
                     then SimpleType(TypeEnum.General)
-                    else condenseTypes returnedTypes
+                    else condenseTypes returnedTypes true
                 | _-> invalidOp ("Cross-sheet reference in cell " + cell + " not followed by cell or range")
             else
                 errorBuffer.Enqueue({
@@ -162,7 +162,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
             let actualTypes = List.map getType args
             let typeStatuses = List.map (fun a -> checkTypes f.input a) actualTypes
             if List.max typeStatuses > TypeStatus.Match
-            then addError sheet cell (List.max typeStatuses) (Variadic f) [(condenseTypes (Set actualTypes))]
+            then addError sheet cell (List.max typeStatuses) (Variadic f) [(condenseTypes (Set actualTypes) false)]
             f.output
         | GenericFunc (f, args) ->
             let inputs, outputs = List.splitAt f.inputs.Length args
@@ -170,12 +170,12 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
             let typeStatuses = List.map2 (fun e a -> checkTypes e a) f.inputs inputTypes
             if (not typeStatuses.IsEmpty) && List.max typeStatuses > TypeStatus.Match
             then addError sheet cell (List.max typeStatuses) (Generic f) inputTypes
-            condenseTypes (Set.map getType (Set outputs))
+            condenseTypes (Set.map getType (Set outputs)) true
         | SwitchFunc args ->
             let inputType = getType args.Head
             let rec recur remaining outTypes =
                 match remaining with
-                | [] -> condenseTypes (Set.ofList outTypes)
+                | [] -> condenseTypes (Set.ofList outTypes) true
                 | [x] -> recur [] ((getType x) :: outTypes)
                 | x::xs ->
                     let thisInputType = getType x
@@ -196,7 +196,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
             let inputType = (SimpleType TypeEnum.Bool)
             let rec recur remaining outTypes =
                 match remaining with
-                | [] -> condenseTypes (Set.ofList outTypes)
+                | [] -> condenseTypes (Set.ofList outTypes) true
                 | x::xs ->
                     let thisInputType = getType x
                     let typeCheck = checkTypes inputType thisInputType
@@ -217,8 +217,9 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                                          | Constant (value, xlType) -> xlType
                                          | _ -> invalidOp "Unexpected reference in literal array")
                                 (Set.ofList values))
+                      true
     | Union union ->
-        condenseTypes (Set.map (fun v -> walkAST sheet cell visited v) (Set.ofList union))
+        condenseTypes (Set.map (fun v -> walkAST sheet cell visited v) (Set.ofList union)) true
 
 and fetchTypeOrParseTypes sheet cell (visited: Set<string>) =
     if cellLookup.ContainsKey(sheet)

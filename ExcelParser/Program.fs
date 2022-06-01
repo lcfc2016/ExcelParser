@@ -84,20 +84,22 @@ let typeCheckingToCSV (filename: string) =
             printfn "finished"
     with
         | ex ->
-            printfn "failed %s: %s" filename ex.Message
+            printfn "failed: %s" ex.Message
 
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/euses/FORESTRYcomparisonhig#A8977.xlsx"
+    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/enron/darron_c_giron__8032__WestCurveMappings.xlsx"
     //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
-    let code = @"XIRR({-10000;2750;4290;3250;2742},{""1998/1/1"";""1998/1/3"";""1998/10/30"";""1999/2/15"";""1999/2/4""},0.01)"
+    //let code = @"CONCATENATE([1]Sheet1!A1, [1]Sheet1!A1)"
+    //printfn "%s" ((Interpreter.checkTypes (SimpleType TypeEnum.Str) (SimpleType TypeEnum.General)).ToString())
     //debugNamedRanges testFile
     //debugParseASTs testFile "G13"
-    //createAST code true (XLSXReader.getNamedRanges testFile) |> (Printer.run "A1")
-    ignore (XLSXReader.testXLRead testFile)
-    ////parseAndPrintASTs testFile
-    //typeCheckAndPrint testFile
+    //ignore (createAST code true Map.empty|> Interpreter.walkAST "Sheet1" "A1" Set.empty) //(Printer.run "A1")
+    //printTypeOutput Interpreter.errorBuffer
+    //ignore (XLSXReader.testXLRead testFile)
+    //parseAndPrintASTs testFile
+    typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
     if argv.Length < 1
