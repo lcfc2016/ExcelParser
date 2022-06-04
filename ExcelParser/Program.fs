@@ -59,6 +59,17 @@ let typeCheckAndPrint filename =
         | :? InvalidOperationException as ex ->
             printfn "Failed to type check %s: %s" filename ex.Message
 
+let typeCheckWithoutNamedRanges filename =
+    let astMap = Map.map (fun name contents ->
+        Map [ for (cell: UnparsedCell) in contents ->
+               ( cell.address,
+                   try
+                       Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula Map.empty) })
+                   with
+                       | :? InvalidOperationException as ex -> Failure (ex.Message))])
+                        (XLSXReader.xlsxReader(filename))
+    Interpreter.run astMap
+
 let errorsToCSVFormat filename (errors: Queue<Error>) =
     Seq.map(fun (error: Error) ->
         // String.Join(",", filename, error.sheet, error.cell, error.f, error.expected, error.actual, error.errorType, error.errorMessage)) errors
@@ -89,16 +100,18 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    let testFile = @"C:/Users/bjs73/Documents/MSc/IRP/final_dataset/enron/darron_c_giron__8032__WestCurveMappings.xlsx"
-    //let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
-    //let code = @"CONCATENATE([1]Sheet1!A1, [1]Sheet1!A1)"
+    //let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/enron/vkaminski__40853__ModelingProject.xlsx"
+    //let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/enron/harry_arora__12174__Vol Book Daily Market.xlsx"
+    let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/test_folder/test2.xlsx"
+    //let code = @"AVERAGE('P2'!AU17:BF17)"
     //printfn "%s" ((Interpreter.checkTypes (SimpleType TypeEnum.Str) (SimpleType TypeEnum.General)).ToString())
     //debugNamedRanges testFile
-    //debugParseASTs testFile "G13"
-    //ignore (createAST code true Map.empty|> Interpreter.walkAST "Sheet1" "A1" Set.empty) //(Printer.run "A1")
+    //debugParseASTs testFile "W10"
+    //ignore (createAST code true Map.empty|> (Printer.run "A1"))
     //printTypeOutput Interpreter.errorBuffer
     //ignore (XLSXReader.testXLRead testFile)
     //parseAndPrintASTs testFile
+    //typeCheckWithoutNamedRanges testFile |> printTypeOutput
     typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else

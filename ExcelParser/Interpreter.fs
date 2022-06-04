@@ -10,6 +10,14 @@ let mutable cellLookup = Map<String, Map<String, ParsedCell>>[]
 let mutable checkedCells = new Dictionary<String, Dictionary<String, XLType>>()
 let mutable errorBuffer = new Queue<Error>()
 
+let radix26 (str: string) =
+    str.ToCharArray()
+    |> List.ofArray
+    |> List.rev
+    |> List.mapi (fun i c -> (float ((int c) - 64)) * (26.0 ** (float i)))
+    |> List.reduce (fun x y -> x + y)
+    |> int
+
 let typeJoin (types: list<XLType>) =
     String.concat "," (List.map (fun (input: XLType) -> input.print()) types)
 
@@ -84,10 +92,11 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                                 (fun name (cell: ParsedCell) ->
                                     match cell with
                                     | Success cell ->
+                                        let colRadix26 = radix26 cell.column
                                         cell.row >= minRow
                                         && cell.row <= maxRow
-                                        && cell.column >= minCol
-                                        && cell.column <= maxCol
+                                        && colRadix26 >= radix26 minCol
+                                        && colRadix26 <= radix26 maxCol
                                     | Failure f -> false)
                                 (cellLookup.GetValueOrDefault(sheet))
             let returnedTypes = Set.map (fun name ->
@@ -110,10 +119,11 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                                         (fun name (cell: ParsedCell) ->
                                             match cell with
                                             | Success cell ->
+                                                let colRadix26 = radix26 cell.column
                                                 cell.row >= minRow
                                                 && cell.row <= maxRow
-                                                && cell.column >= minCol
-                                                && cell.column <= maxCol
+                                                && colRadix26 >= radix26 minCol
+                                                && colRadix26 <= radix26 maxCol
                                             | Failure f -> false)
                                         (cellLookup.GetValueOrDefault(sheetRef))
                     let returnedTypes = Set.map (fun name ->
