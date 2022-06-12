@@ -1,7 +1,6 @@
 ﻿module Printer
 
 open System
-open System.Collections.Generic
 open Types
 
 

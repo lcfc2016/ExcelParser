@@ -5,7 +5,7 @@ open System
 open Types
 
 
-// Date & Time - DONE
+// Date & Time
 let date = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "DATE" }
 let dateValue = { inputs = [SimpleType TypeEnum.Str]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "DATEVALUE" }
 let day = { inputs = [(ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str]))]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "DAY" }
@@ -31,7 +31,7 @@ let workDayIntl = { inputs = [(ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str]
 let year = { inputs = [(ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str]))]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "YEAR" }
 let yearFrac = { inputs = [(ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "YEARFRAC" }
 
-// Engineering - ADD TO FUNC PARSER
+// Engineering
 let besselI = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "BESSELI"}
 let besselJ = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "BESSELJ"}
 let besselK = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "BESSELK"}
@@ -85,7 +85,7 @@ let oct2Bin = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numer
 let oct2Dec = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "OCT2DEC"}
 let oct2Hex = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str]); minArity = 1; repr = "OCT2HEX"}
 
-// Financial - Add to func parser
+// Financial
 let accrInt = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 6; repr = "ACCRINT"}
 let accrIntM = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "ACCRINTM"}
 let amorDegrc = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 6; repr = "AMORDEGRC"}
@@ -142,7 +142,7 @@ let yield' = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeri
 let yieldDisc = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 4; repr = "YIELDDISC"}
 let yieldMat = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 5; repr = "YIELDMAT"}
 
-// Information - DONE
+// Information
 let cell = { inputs = [SimpleType TypeEnum.Str; SimpleType TypeEnum.General]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); minArity = 1; repr = "CELL"}
 let errorType = { inputs = [SimpleType TypeEnum.Error]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ERROR.TYPE"}
 let info = { inputs = [SimpleType TypeEnum.Str]; output = (ComplexType (Set [TypeEnum.Numeric; TypeEnum.Str])); minArity = 1; repr = "INFO"}
@@ -196,7 +196,7 @@ let vlookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.Gener
 let xlookup = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.General; minArity = 3; repr = "XLOOKUP" }
 let xmatch = { inputs = [SimpleType TypeEnum.General; SimpleType TypeEnum.General; SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 2; repr = "XMATCH" }
 
-// Math and Trig - Add aggregate to func parser
+// Math and Trig
 let abs = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ABS" }
 let aggregate = { inputs = [SimpleType TypeEnum.Numeric; SimpleType TypeEnum.Numeric] @ [ for i in 1..253 -> ignore i; SimpleType TypeEnum.General ]; output = SimpleType TypeEnum.Numeric; minArity = 3; repr = "AGGREGATE" }
 let acos = { inputs = [SimpleType TypeEnum.Numeric]; output = SimpleType TypeEnum.Numeric; minArity = 1; repr = "ACOS" }

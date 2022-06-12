@@ -1,6 +1,4 @@
-﻿// Learn more about F# at http://docs.microsoft.com/dotnet/fsharp
-
-open System
+﻿open System
 open System.IO
 open System.Collections.Generic
 open Types
@@ -9,17 +7,7 @@ open Types
 let createAST input isFormula namedRanges =
     Tokeniser.run input isFormula namedRanges |> Parser.run
 
-let parseAndPrintASTs filename =
-    let namedRanges = XLSXReader.getNamedRanges filename
-    printfn "%s" filename
-    Map.iter (fun name contents ->
-               printfn "%s" name
-               ignore [ for (cell: UnparsedCell) in contents ->
-                           try
-                               Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)
-                           with
-                               | :? InvalidOperationException as ex -> printfn "%s -> Unable to parse: %s" cell.address ex.Message ])
-             (XLSXReader.xlsxReader(filename))
+// DEBUG FUNCTIONS
 
 let debugParseASTs filename cellAddress =
     let namedRanges = XLSXReader.getNamedRanges filename
@@ -34,6 +22,31 @@ let debugNamedRanges filename =
     let namedRanges = XLSXReader.getNamedRanges filename
     for range in namedRanges do
         printfn "%s -> %s" range.Key (range.Value.ranges.ToString())
+
+let parseAndPrintASTs filename =
+    let namedRanges = XLSXReader.getNamedRanges filename
+    printfn "%s" filename
+    Map.iter (fun name contents ->
+               printfn "%s" name
+               ignore [ for (cell: UnparsedCell) in contents ->
+                           try
+                               Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)
+                           with
+                               | :? InvalidOperationException as ex -> printfn "%s -> Unable to parse: %s" cell.address ex.Message ])
+             (XLSXReader.xlsxReader(filename))
+
+let typeCheckWithoutNamedRanges filename =
+    let astMap = Map.map (fun name contents ->
+        Map [ for (cell: UnparsedCell) in contents ->
+               ( cell.address,
+                   try
+                       Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula Map.empty) })
+                   with
+                       | :? InvalidOperationException as ex -> Failure (ex.Message))])
+                        (XLSXReader.xlsxReader(filename))
+    Interpreter.run astMap
+
+// OUTPUT FUNCTIONS
 
 let printTypeOutput (errors: Queue<Error>) =
     for error in errors do
@@ -58,17 +71,6 @@ let typeCheckAndPrint filename =
     with
         | :? InvalidOperationException as ex ->
             printfn "Failed to type check %s: %s" filename ex.Message
-
-let typeCheckWithoutNamedRanges filename =
-    let astMap = Map.map (fun name contents ->
-        Map [ for (cell: UnparsedCell) in contents ->
-               ( cell.address,
-                   try
-                       Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula Map.empty) })
-                   with
-                       | :? InvalidOperationException as ex -> Failure (ex.Message))])
-                        (XLSXReader.xlsxReader(filename))
-    Interpreter.run astMap
 
 let errorsToCSVFormat filename (errors: Queue<Error>) =
     Seq.map(fun (error: Error) ->
@@ -100,18 +102,15 @@ let typeCheckingToCSV (filename: string) =
 [<EntryPoint>]
 let main argv =
 #if DEBUG
-    //let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/enron/vkaminski__40853__ModelingProject.xlsx"
-    //let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/enron/harry_arora__12174__Vol Book Daily Market.xlsx"
-    let testFile = @"C:/Users/bjs73/documents/msc/irp/final_dataset/test_folder/test2.xlsx"
-    //let code = @"AVERAGE('P2'!AU17:BF17)"
-    //printfn "%s" ((Interpreter.checkTypes (SimpleType TypeEnum.Str) (SimpleType TypeEnum.General)).ToString())
+    let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
+    //let code = @"-3^4+1"
+    //ignore (createAST code true Map.empty|> (Printer.run "A1"))
     //debugNamedRanges testFile
     //debugParseASTs testFile "W10"
-    //ignore (createAST code true Map.empty|> (Printer.run "A1"))
     //printTypeOutput Interpreter.errorBuffer
     //ignore (XLSXReader.testXLRead testFile)
-    //parseAndPrintASTs testFile
     //typeCheckWithoutNamedRanges testFile |> printTypeOutput
+    //parseAndPrintASTs testFile
     typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
@@ -120,7 +119,6 @@ let main argv =
     elif argv.[0].[0] = '-'
     then
         let files = List.tail (List.ofArray argv)
-        //let files = List.filter(fun filename -> not (XLSXReader.isProtected filename)) (List.tail (List.ofArray argv))
         if argv.Length < 2
         then printfn "Please provide xlsx files"
         elif argv.[0] = "-p" then List.iter parseAndPrintASTs files

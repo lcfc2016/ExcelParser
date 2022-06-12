@@ -1,10 +1,9 @@
 ﻿module SetFunctions
 
-open System
 open Types
 
 
-// Engineering - ADD TO FUNC PARSER
+// Engineering
 let imProduct = { input = ComplexType(Set[ TypeEnum.Numeric; TypeEnum.Str ]); output = ComplexType(Set[ TypeEnum.Numeric; TypeEnum.Str ]); repr = "IMPRODUCT"}
 let imSum = { input = ComplexType(Set[ TypeEnum.Numeric; TypeEnum.Str ]); output = ComplexType(Set[ TypeEnum.Numeric; TypeEnum.Str ]); repr = "IMSUM"}
 
@@ -16,14 +15,14 @@ let xor = { input = ComplexType(Set[ TypeEnum.Bool; TypeEnum.Numeric ]); output 
 // Lookup and Reference
 let areas = { input = SimpleType TypeEnum.General; output = SimpleType TypeEnum.Numeric; repr = "AREAS" }
 
-// Math and Trig - REFRESH FUNC PARSER LIST
+// Math and Trig
 let multinomial = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "MULTINOMIAL" }
 let product = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "PRODUCT" }
 let sum = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "SUM" }
 let sumProduct = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "SUMPRODUCT" }
 let sumSq = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "SUMSQ" }
 
-// Statistical - REFRESH FUNC PARSER LIST
+// Statistical
 let avedev = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "AVEDEV"}
 let average = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "AVERAGE" }
 let averagea = { input = SimpleType TypeEnum.Numeric; output = SimpleType TypeEnum.Numeric; repr = "AVERAGEA"}

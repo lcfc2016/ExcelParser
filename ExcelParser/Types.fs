@@ -29,8 +29,6 @@ type TokenType =
     | Boolean
     | XLError
     // Misc
-    //| Let
-    | Intersection
     | Percentage
     | FileReference
     | SheetReference
@@ -43,12 +41,6 @@ type TokenType =
     | End
 
 type Token = { value: string; tokenType: TokenType }
-
-//type AST = Expr of Expression
-//    | Statement of Assignment
-//    | Expr of Expression
-
-//and Assignment = { id: string; value: Expression }
 
 type XLType =
     | ComplexType of Set<TypeEnum>
@@ -111,14 +103,9 @@ and Value =
     | Constant of value:String * xlType:XLType
     | Range of minRow:int * maxRow:int * minCol:String * maxCol:String
 
-//    | Str of string
-//    | Bool of bool
-//    | Real of double
-
 type Cell =
     | Unparsed of UnparsedCell
     | Parsed of ParsedCell
-//    | TypeChecked of TypeCheckedCell
 
 and UnparsedCell = { address: String; column: String; row: int; value: String; isFormula: bool }
 and ParsedCell =

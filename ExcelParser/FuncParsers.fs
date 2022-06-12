@@ -35,7 +35,7 @@ let getBinOpPrec (token: Token) =
     | Factor -> 3
     | Expt -> 4
     // Post fix precedence
-    // Unary op precedence is here, defined below
+    // Unary op precedence
     | _ -> invalidOp ("Parse error at " + token.value)
 
 let postFixPrecedence = 5

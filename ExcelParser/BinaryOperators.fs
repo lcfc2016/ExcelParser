@@ -1,7 +1,5 @@
 ﻿module BinaryOperators
 
-open System
-open System.Text.RegularExpressions
 
 open Types
 

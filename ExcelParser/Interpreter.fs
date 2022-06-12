@@ -11,6 +11,7 @@ let mutable checkedCells = new Dictionary<String, Dictionary<String, XLType>>()
 let mutable errorBuffer = new Queue<Error>()
 
 let radix26 (str: string) =
+    // Converts Excel's column codes to the corresponding numeric value
     str.ToCharArray()
     |> List.ofArray
     |> List.rev
@@ -22,6 +23,8 @@ let typeJoin (types: list<XLType>) =
     String.concat "," (List.map (fun (input: XLType) -> input.print()) types)
 
 let condenseTypes (types: Set<XLType>) reduceToGeneral =
+    // Reduces a set of types to the type representation possible, including General
+    // if set to do so by the boolean flag
     let convertSimpleTypesToSets x =
         match x with
         | SimpleType x -> Set.empty.Add(x)
@@ -59,7 +62,6 @@ let checkTypes expected actual =
         then TypeStatus.Match
         else match actual with
              | SimpleType actual ->
-                // Debatable as to whether the latter clause (and line 61) to accept general for actual or not is the correct choice, add as strict flag?
                  if expected = actual || actual = TypeEnum.General
                  then TypeStatus.Match
                  else TypeStatus.Mismatch
