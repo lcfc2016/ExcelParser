@@ -23,8 +23,8 @@ let typeJoin (types: list<XLType>) =
     String.concat "," (List.map (fun (input: XLType) -> input.print()) types)
 
 let condenseTypes (types: Set<XLType>) reduceToGeneral =
-    // Reduces a set of types to the type representation possible, including General
-    // if set to do so by the boolean flag
+    // Reduces a set of types to the simplest type representation possible, including General
+    // but only if set to do so by the boolean flag (needed when this is used for generating error output)
     let convertSimpleTypesToSets x =
         match x with
         | SimpleType x -> Set.empty.Add(x)
@@ -56,6 +56,9 @@ let addError sheet cell errorType f (actual: list<XLType>) =
     })
 
 let checkTypes expected actual =
+    // Returns a match if: expected = actual or either is general
+    // Returns a partial if: actual is a complex type and expected is not a direct match
+    // Returns a mismatch if: either of the above are not met
     match expected with
     | SimpleType expected ->
         if expected = TypeEnum.General
@@ -85,11 +88,13 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
     | Leaf leaf ->
         match leaf with
         | Reference name ->
+            // Check for circular reference, fetch type if not
             let loc = sheet + "!" + name
             if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
             fetchTypeOrParseTypes sheet name (visited.Add loc)
         | Constant (value, xlType) -> xlType
         | Range (minRow, maxRow, minCol, maxCol) ->
+            // Convert range object to a set of active cells within the range parameters
             let activeCells = Map.filter
                                 (fun name (cell: ParsedCell) ->
                                     match cell with
@@ -101,6 +106,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                                         && colRadix26 <= radix26 maxCol
                                     | Failure f -> false)
                                 (cellLookup.GetValueOrDefault(sheet))
+            // Check for circular reference, if not found fetch types of active cells and condense
             let returnedTypes = Set.map (fun name ->
                 let loc = sheet + "!" + name
                 if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
@@ -109,14 +115,17 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
             then SimpleType(TypeEnum.General)
             else condenseTypes returnedTypes true
         | Sheet (sheetRef, reference) ->
+            // Check sheet exists, resolve to type if so, error if not and return general type
             if cellLookup.ContainsKey(sheetRef)
             then
                 match reference with
                 | Reference name ->
+                    // Check for circular reference, fetch type if not
                     let loc = sheetRef + "!" + name
                     if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
                     fetchTypeOrParseTypes sheetRef name (visited.Add loc)
                 | Range (minRow, maxRow, minCol, maxCol) ->
+                    // Convert range object to a set of active cells within the range parameters
                     let activeCells = Map.filter
                                         (fun name (cell: ParsedCell) ->
                                             match cell with
@@ -128,6 +137,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                                                 && colRadix26 <= radix26 maxCol
                                             | Failure f -> false)
                                         (cellLookup.GetValueOrDefault(sheetRef))
+                    // Check for circular reference, if not found fetch types of active cells and condense
                     let returnedTypes = Set.map (fun name ->
                         let loc = sheetRef + "!" + name
                         if visited.Contains loc then invalidOp ("Circular reference detected: " + loc)
@@ -148,8 +158,10 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                 })
                 SimpleType (TypeEnum.General)
     | Node node ->
+        // define partial function to reduce repetition
         let getType = walkAST sheet cell visited
         match node with
+        // Resolve types of various function/operator arguments, check against expected types and return function output type
         | Unary (unary, arg) ->
             let actual = getType arg
             let typeStatus = checkTypes unary.inputs.Head actual
@@ -184,6 +196,10 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
             then addError sheet cell (List.max typeStatuses) (Generic f) inputTypes
             condenseTypes (Set.map getType (Set outputs)) true
         | SwitchFunc args ->
+            // Get the type of the value to be switched, then check the other args in pairs,
+            // the leading pair should match the type of the switch value, otherwise error
+            // Collect output types as it goes, including if a trailing single value remains
+            // (as this is valid) and then return the condensed version
             let inputType = getType args.Head
             let rec recur remaining outTypes =
                 match remaining with
@@ -205,6 +221,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                     recur xs.Tail ((getType (xs.Head)) :: outTypes)
             recur args.Tail []
         | IfsFunc args ->
+            // Similar to the switch option, but expect a series of boolean/output pairs
             let inputType = (SimpleType TypeEnum.Bool)
             let rec recur remaining outTypes =
                 match remaining with
@@ -224,6 +241,7 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
                     })
                     recur xs.Tail ((getType (xs.Head)) :: outTypes)
             recur args []
+    // Arrays and unions are simple maps over the values and then condensing of the types
     | Values values ->
         condenseTypes (Set.map (fun v -> match v with
                                          | Constant (value, xlType) -> xlType
@@ -234,6 +252,9 @@ let rec walkAST (sheet: String) (cell: String) (visited: Set<string>) expr : XLT
         condenseTypes (Set.map (fun v -> walkAST sheet cell visited v) (Set.ofList union)) true
 
 and fetchTypeOrParseTypes sheet cell (visited: Set<string>) =
+    // Check if the sheet exists, if not error, if so check if the cell has already been parsed,
+    // return the known type if so. Otherwise check if the cell is an active cell, if so initiate
+    // parse, if not this is a reference to an empty cell and type 'general' can be returned
     if cellLookup.ContainsKey(sheet)
     then
         if checkedCells.GetValueOrDefault(sheet).ContainsKey(cell)
@@ -264,6 +285,8 @@ and fetchTypeOrParseTypes sheet cell (visited: Set<string>) =
         SimpleType (TypeEnum.General)
 
 let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
+    // Map over a sheet's parsed cells, initiate type parse if AST creation was successful,
+    // return type 'general' if not and record the parse error
     Map.map (fun address (cell: ParsedCell) ->
                 match cell with
                 | Success s -> (fetchTypeOrParseTypes sheet address Set.empty)
@@ -281,7 +304,7 @@ let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
             cellMap
 
 let run (astMap: Map<String, Map<String, ParsedCell>>) =
-    // Initialise errorFormat, global AST lookup and dictionary of known cell types
+    // Initialise global AST lookup and dictionary of known cell types, return list of errors
     cellLookup <- astMap
     Map.iter (fun sheet contents -> checkedCells.Add(sheet, new Dictionary<String, XLType>())) astMap
     // Type check

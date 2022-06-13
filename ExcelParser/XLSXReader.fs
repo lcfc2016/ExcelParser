@@ -5,6 +5,9 @@ open ClosedXML.Excel
 open Types
 
 let getNamedRanges (filename: String) =
+    // Attempts to retrieve the named ranges from the file, ClosedXML and Excel occasionally error,
+    // report if so. Otherwise map over ranges, discarding multi-sheet ranges as unresolvable.
+    // Then return the parsed named ranges
     try
         use workbook = new XLWorkbook(filename)
         let validRanges =

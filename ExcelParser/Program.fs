@@ -10,6 +10,7 @@ let createAST input isFormula namedRanges =
 // DEBUG FUNCTIONS
 
 let debugParseASTs filename cellAddress =
+    // Debug function, fetch specific cell's AST
     let namedRanges = XLSXReader.getNamedRanges filename
     printfn "%s" filename
     Map.iter (fun name contents ->
@@ -19,23 +20,13 @@ let debugParseASTs filename cellAddress =
              (XLSXReader.xlsxReader(filename))
 
 let debugNamedRanges filename =
+    // Dump named range input in readable format
     let namedRanges = XLSXReader.getNamedRanges filename
     for range in namedRanges do
         printfn "%s -> %s" range.Key (range.Value.ranges.ToString())
 
-let parseAndPrintASTs filename =
-    let namedRanges = XLSXReader.getNamedRanges filename
-    printfn "%s" filename
-    Map.iter (fun name contents ->
-               printfn "%s" name
-               ignore [ for (cell: UnparsedCell) in contents ->
-                           try
-                               Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)
-                           with
-                               | :? InvalidOperationException as ex -> printfn "%s -> Unable to parse: %s" cell.address ex.Message ])
-             (XLSXReader.xlsxReader(filename))
-
 let typeCheckWithoutNamedRanges filename =
+    // As per parseAndTypeCheck below (i.e. default behaviour) but without named ranges
     let astMap = Map.map (fun name contents ->
         Map [ for (cell: UnparsedCell) in contents ->
                ( cell.address,
@@ -48,23 +39,38 @@ let typeCheckWithoutNamedRanges filename =
 
 // OUTPUT FUNCTIONS
 
+let parseAndPrintASTs filename =
+    // -p option
+    let namedRanges = XLSXReader.getNamedRanges filename
+    printfn "%s" filename
+    Map.iter (fun name contents ->
+               printfn "%s" name
+               ignore [ for (cell: UnparsedCell) in contents ->
+                           try
+                               Printer.run cell.address (createAST cell.value cell.isFormula namedRanges)
+                           with
+                               | :? InvalidOperationException as ex -> printfn "%s -> Unable to parse: %s" cell.address ex.Message ])
+             (XLSXReader.xlsxReader(filename))
+
 let printTypeOutput (errors: Queue<Error>) =
     for error in errors do
         printfn "%s, %s, %s -> Expected %s, Got %s, %s, %s" error.sheet error.cell error.f error.expected error.actual error.errorType error.errorMessage
 
 let parseAndTypeCheck filename =
+    // Fetch named ranges, then tokenise and parse, any failures are handled and then the ASTs passed to the type checker
     let namedRanges = XLSXReader.getNamedRanges filename
     let astMap = Map.map (fun name contents ->
-                             Map [ for (cell: UnparsedCell) in contents ->
-                                    ( cell.address,
-                                        try
-                                            Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula namedRanges) })
-                                        with
-                                            | :? InvalidOperationException as ex -> Failure (ex.Message))])
-                        (XLSXReader.xlsxReader(filename))
+        Map [ for (cell: UnparsedCell) in contents ->
+                ( cell.address,
+                    try
+                        Success ({ column = cell.column; row = cell.row; ast = (createAST cell.value cell.isFormula namedRanges) })
+                    with
+                        | :? InvalidOperationException as ex -> Failure (ex.Message))])
+                    (XLSXReader.xlsxReader(filename))
     Interpreter.run astMap
 
 let typeCheckAndPrint filename =
+    // Default output
     printfn "%s" filename
     try
         parseAndTypeCheck filename |> printTypeOutput
@@ -74,16 +80,17 @@ let typeCheckAndPrint filename =
 
 let errorsToCSVFormat filename (errors: Queue<Error>) =
     Seq.map(fun (error: Error) ->
-        // String.Join(",", filename, error.sheet, error.cell, error.f, error.expected, error.actual, error.errorType, error.errorMessage)) errors
         sprintf "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"" filename error.sheet error.cell error.f error.expected error.actual error.errorType error.errorMessage) errors
 
 let rec generateOutputName (filename: string) attempt =
+    // Checks if previous output exists, increments attempt number and tries again if so
     let output = Path.GetDirectoryName(filename) + @"\" + "output_" + Path.GetFileNameWithoutExtension(filename) + (if attempt < 1 then "" else "_" + attempt.ToString()) + ".csv"
     if File.Exists output
     then generateOutputName filename (attempt + 1)
     else output
 
 let typeCheckingToCSV (filename: string) =
+    // -c option, parses and type checks, then formats the errors to CSV before outputting. Prints a status to STDOUT
     printf "Starting: %s, " filename
     try
         let errors = parseAndTypeCheck filename
@@ -114,7 +121,9 @@ let main argv =
     typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
-    if argv.Length < 1
+    // Check argument provided, if not or -h, advise. If lead arg is a flag, check that files follow, and take appropriate
+    // action. If no flag use default type-check and print behaviour. If bad flag advise
+    if argv.Length < 1 || argv.[0] = "-h"
     then printfn "Please provide xlsx files to parse and type check. Flag -p enables AST print mode, -c CSV output mode"
     elif argv.[0].[0] = '-'
     then
