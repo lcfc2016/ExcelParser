@@ -110,6 +110,8 @@ let typeCheckingToCSV (filename: string) =
 let main argv =
 #if DEBUG
     let testFile = @"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"
+    let files = [@"C:\Users\bjs73\Documents\MSc\IRP\test_sheet_1.xlsx"; @"C:\Users\bjs73\Documents\wedding_guests.xlsx"]
+    List.iter typeCheckAndPrint files
     //let code = @"-3^4+1"
     //ignore (createAST code true Map.empty|> (Printer.run "A1"))
     //debugNamedRanges testFile
@@ -118,7 +120,7 @@ let main argv =
     //ignore (XLSXReader.testXLRead testFile)
     //typeCheckWithoutNamedRanges testFile |> printTypeOutput
     //parseAndPrintASTs testFile
-    typeCheckAndPrint testFile
+    //typeCheckAndPrint testFile
     //typeCheckingToCSV testFile
 #else
     // Check argument provided, if not or -h, advise. If lead arg is a flag, check that files follow, and take appropriate

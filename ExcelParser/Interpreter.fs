@@ -305,6 +305,9 @@ let typeCheckSheet sheet (cellMap: Map<String, ParsedCell>) =
 
 let run (astMap: Map<String, Map<String, ParsedCell>>) =
     // Initialise global AST lookup and dictionary of known cell types, return list of errors
+    checkedCells.Clear()
+    errorBuffer.Clear()
+    cellLookup <- Map.empty
     cellLookup <- astMap
     Map.iter (fun sheet contents -> checkedCells.Add(sheet, new Dictionary<String, XLType>())) astMap
     // Type check

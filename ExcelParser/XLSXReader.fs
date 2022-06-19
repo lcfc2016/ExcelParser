@@ -1,6 +1,7 @@
 ﻿module XLSXReader
 
 open System
+open System.IO
 open ClosedXML.Excel
 open Types
 
@@ -19,6 +20,7 @@ let getNamedRanges (filename: String) =
                 let sheet = [ for subRange in range.Ranges -> subRange.Worksheet.Name ].Head
                 ( range.Name.ToLower(), { sheet = sheet + "!"; ranges = [ for subRange in range.Ranges -> subRange.RangeAddress.ToString() ] } ) ]
     with
+        | :? FileNotFoundException as ex -> invalidOp(filename + " not found")
         | :? IndexOutOfRangeException as ex -> invalidOp("ClosedXML named range read error")
         | ex -> invalidOp("Error occurred reading named ranges")
 

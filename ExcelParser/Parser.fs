@@ -200,6 +200,7 @@ and parseRef sheetName =
     | _ -> invalidOp ("Expected cell or range following reference to sheet " + sheetName.TrimEnd('!'))
 
 let parse (tokenList: List<Token>) =
+    tokens.Clear()
     tokens <- (Generic.Queue tokenList)
     let result = parseExpr 0 false
     expect End
