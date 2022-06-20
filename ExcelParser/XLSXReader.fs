@@ -22,7 +22,7 @@ let getNamedRanges (filename: String) =
     with
         | :? FileNotFoundException as ex -> invalidOp(filename + " not found")
         | :? IndexOutOfRangeException as ex -> invalidOp("ClosedXML named range read error")
-        | ex -> invalidOp("Error occurred reading named ranges")
+        | ex -> invalidOp("Error occurred reading file")
 
 let readSheet (xlSheet: IXLWorksheet) =
     [ for cell in xlSheet.CellsUsed() -> {
