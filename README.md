@@ -8,7 +8,7 @@ MIT Licence
 
 USAGE
 
-The prototype is built to be ran from the command line, it can be invoked as per any command line executable once downloaded and compiled
+This app is a command line tool, invokable as per any command line executable once downloaded and compiled. Developed and tested on a Windows x86-64 machine, will get round to testing on Linux at some point.
 
 The parser expects the name(s) of Excel files to be provided as command line arguments, and will produce output for each supplied. If no files are provided or the flag '-h' is supplied as the first argument, the parser will output simple usage notes.
 
