@@ -4,6 +4,8 @@ This project is for a type checking parser for the Excel formula language. It ta
 
 It was developed as a VS2019 project and is probably best downloaded as such. Relies on the ClosedXML library for reading XLSX files.
 
+MIT Licence
+
 USAGE
 
 The prototype is built to be ran from the command line, it can be invoked as per any command line executable once downloaded and compiled
